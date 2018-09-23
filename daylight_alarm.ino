@@ -18,6 +18,13 @@
 #include "SSD1306Ascii.h"
 #include "SSD1306AsciiAvrI2c.h"
 
+#include <assert.h>
+//#include <string>
+ 
+  // Or you can use the rtc.setTime(s, m, h, day, date, month, year)
+  // function to explicitly set the time:
+  // e.g. 7:32:16 | Monday October 31, 2016:
+  //rtc.setTime(16, 32, 7, 2, 31, 10, 16);  // Uncomment to manually set time
 
 //RTC
 // Configurable Pin Definitions //
@@ -27,63 +34,68 @@
 SSD1306AsciiAvrI2c oled;
 
 // Input pin assignments
-const byte BUTTON1_PIN(A0),              // connect a button switch from this pin to ground
-      BUTTON2_PIN(A1),              // connect a button switch from this pin to ground
-      BUTTON3_PIN(A2),              // connect a button switch from this pin to ground
-      BUTTON4_PIN(A3);              // connect a button switch from this pin to ground-not connected
+const byte
+  BUTTON1_PIN(4),              // connect a button switch from this pin to ground
+  BUTTON2_PIN(5),              // connect a button switch from this pin to ground
+  BUTTON3_PIN(6),              // connect a button switch from this pin to ground
+  BUTTON4_PIN(7);              // connect a button switch from this pin to ground-not connected
 
 Button myBtn1(BUTTON1_PIN), myBtn2(BUTTON2_PIN), myBtn3(BUTTON3_PIN);       // define the button
 
 // Output pin assignments
-const byte LED_PIN1(8),                // Output 1
-      LED_PIN2(9);                // Output 2
+const byte
+  LED_PIN1(8),                // Output 1
+  LED_PIN2(9);                // Output 2
 
 // detecting button repeats
-const unsigned long REPEAT_FIRST(500),          // ms required before repeating on long press
-      REPEAT_INCR(100),           // repeat interval for long press
-      REPEAT_INCR_FAST(20),
-      FAST_THRESHOLD(2000);
+const unsigned long
+  REPEAT_FIRST(500),          // ms required before repeating on long press
+  REPEAT_INCR(100),           // repeat interval for long press
+  REPEAT_INCR_FAST(20),
+  FAST_THRESHOLD(2000);
 static bool
-printoled = LOW,            // flag to update screen
-SPEED1 = LOW,                // for speeding up the counter after the button is pressed for a long time
-led1State = LOW,            // a variable that keeps the current LED status
-led2State = LOW;            // a variable that keeps the current LED status
+  printoled = LOW,            // flag to update screen
+  SPEED = LOW,                // for speeding up the counter after the button is pressed for a long time
+  led1State = LOW,            // a variable that keeps the current LED status
+  led2State = LOW;            // a variable that keeps the current LED status
 
 
 // set alarm values - probably dont need seconds, month or year setting week day would be nice
-int alarmhour = 20;
-int alarmminute = 30;
-int alarmsecond = 00;
-// Set to Sunday September 2, 2018:
-int alarmday = 1; // Sunday=1, Monday=2, ..., Saturday=7.
-int alarmdate = 2;
-int alarmmonth = 9;
-int alarmyear = 18;
+// Set to 20:30 Sunday September 2, 2018:
+ static signed char           // type int8_t, range -128 to 127
+  alarmhour = 20,
+  alarmminute = 30,
+  alarmsecond = 00,
+  alarmday = 1,               // day: Sunday=1, Monday=2, ..., Saturday=7
+  alarmdate = 2,
+  alarmmonth = 9,
+  alarmyear = 18;
 
-static int8_t lastSecond = -1;   // for every time the second rolls over to do something
-static unsigned long rpt(REPEAT_FIRST);              // a variable time that is used to drive the repeats for long presses
-enum states_t {WAIT, MENU_SET_ALARM, MENU_SET_TIME, MENU_SET_EXIT, SET_ALARM, SET_TIME, INCR, DECR};   // states for the state machine
-//enum states_t {WAIT, INCR, DECR};       // states for the state machine old working
+// for every time the second rolls over to do something
+static signed char lastSecond = -1;
+static unsigned long rpt(REPEAT_FIRST);  // a variable time that is used to drive the repeats for long presses
+
+// states for the state machine
+enum states_t {WAIT, MENU_SET_ALARM, MENU_SET_TIME, MENU_SET_EXIT, SET_ALARM, SET_TIME};   // states for the state machine
+//enum states_t {WAIT, INCR, DECR}; // states for the state machine old working
 static states_t STATE;              // current state machine state
-
-
 
 void setup()
 {
-  delay(1000);
   // Use the serial monitor to view output
   Serial.begin(9600);
 
   // Call rtc.begin([cs]) to initialize the library
   // The chip-select pin should be sent as the only parameter
   rtc.begin(DS13074_CS_PIN);
-  rtc.autoTime();//set time
+  rtc.autoTime();              // set time
 
-
-  //  rtc.update();   // Update time/date values, so we can set alarms
+  // Update time/date values, so we can set alarms
+  //  rtc.update();
   Wire.begin();
   Wire.setClock(400000L);
 
+  // Start the oled display
   oled.begin(&Adafruit128x64, I2C_ADDRESS);
   oled.clear();
 
@@ -95,17 +107,19 @@ void setup()
   // Start Outputs
   pinMode(LED_PIN1, OUTPUT);   // set the LED pin as an output
   pinMode(LED_PIN2, OUTPUT);   // set the LED pin as an output
-
 }
-//char lineone[16] = " "; // string for first line change[16] to length of line for neatness
-//char linefour[16] = " ";
-static bool Alarm_on_or_off = LOW;
 
 void loop()
 {
 
-
-  myBtn1.read();                   // read the buttons
+  //static char lineone[18];
+  //static char linefour[18];
+  static String lineone;
+  static String linefour;
+  
+  static bool Alarm_on_or_off = LOW;
+  
+  myBtn1.read();                // read the buttons
   myBtn2.read();
   myBtn3.read();
 
@@ -121,74 +135,81 @@ void loop()
     Serial.print (STATE);
     Serial.print (" ");
     printTime(); // Print the new time to serial
+    Serial.println (lineone);
+    Serial.println (linefour);
   }
   //   if (Alarm_on_or_off == HIGH)
-  //       strcpy(lineone, "Alarm : ON   ");
+  //      strcpy(lineone, "Alarm : ON   ");
   //   else if (Alarm_on_or_off == LOW)
-  //       strcpy(lineone, "Alarm : OFF  ");
+  //      strcpy(lineone, "Alarm : OFF  ");
 
   if (printoled == HIGH)      // something has changed and its time to update screen
   {
     printoled = !printoled;
-    oled.setInvertMode (false);
+    //oled.setInvertMode (false);
     oled.setFont(X11fixed7x14);
-    oled.set1X();
-    oled.setCursor(0, 0);
+    //oled.set1X();
+    //oled.setCursor(0, 0);
+    oled.home();              // Set the cursor position to (0, 0).
     //oled.print ("state = ");
     //oled.println (STATE);
+
     //line One
-    if ((STATE == 0) && (Alarm_on_or_off == HIGH))
-      oled.println("Alarm On       ");
+    switch (STATE)
+    {
+      case WAIT:
+        lineone = "Home     ";
+        break;
 
-    else if ((STATE == 0) && (Alarm_on_or_off == LOW))
-      oled.println("Alarm Off       ");
+      case MENU_SET_ALARM:
+      case SET_ALARM:
+        lineone = "Set Alarm";
+        break;
 
-    else if (STATE == 1)
-      oled.println("Set Alarm      ");
-    else if (STATE == 2)
-      oled.println("Set Time       ");
-    else if (STATE == 3)
-      oled.println("Exit           ");
-    else if (STATE == 4)
-      oled.println("Setting Alarm  ");
-    else if (STATE == 5)
-      oled.println("Setting Time   ");
-    else if (STATE == 6)
-      oled.println("Setting Alarm  ");
-    else if (STATE == 7)
-      oled.println("Setting Alarm  ");
+      case MENU_SET_TIME:
+      case SET_TIME:
+        lineone = "Set Time ";
+        break;
 
-    OLEDprintTime (); //print to LCD
-    OLEDprintAlarm();
+      case MENU_SET_EXIT:
+        lineone = "Exit     ";
+        break;        
+    }
+    assert (lineone.length() == 9);            // strings overwrite one another on the display, so should be the same length
+    
     //line four
-    if (STATE == 0)
-      oled.println("Menu    On     Off");
+    switch (STATE)
+    {    
+      case WAIT:
+        linefour = "Menu    On     Off";
+        break;
+        
+      case MENU_SET_ALARM:
+      case MENU_SET_TIME:
+      case MENU_SET_EXIT:
+        linefour = "Enter   Prev  Next";
+        break;
+        
+      case SET_ALARM:
+      case SET_TIME:
+        linefour = "Exit   Plus  Minus";
+        break;
+    }
+    assert (linefour.length() == 18);            // strings overwrite one another on the display, so should be the same length
 
-    else if (STATE == 1)
-      oled.println("Enter  Prev   Next");
-    else if (STATE == 2)
-      oled.println("Enter  Prev   Next");
-    else if (STATE == 3)
-      oled.println("Enter  Prev   Next");
-    else if (STATE == 4)
-      oled.println("Exit   Plus  Minus");
-    else if (STATE == 5)
-      oled.println("Exit   Plus  Minus");
-    else if (STATE == 6)
-      oled.println("Exit   Plus  Minus");
-    else if (STATE == 7)
-      oled.println("Exit   Plus  Minus");
+    //Serial.println (lineone);
+    // print to LCD
+    oled.println(lineone);
+    OLEDprintTime ();
+    OLEDprintAlarm(Alarm_on_or_off);
+    oled.println(linefour);
 
-
-
-
-    //     OLEDlinefour ();
   }
 
   switch (STATE)
   {
-    case WAIT:                              // case 0 wait for a button event
-      //           strcpy(linefour, "Menu");
+    case WAIT:                           // case 0 wait for a button event
+      // strcpy(linefour, "Menu");
       if (myBtn1.wasPressed())
         STATE = MENU_SET_ALARM,
         printoled = !printoled;
@@ -201,7 +222,7 @@ void loop()
       break;
 
     case MENU_SET_ALARM:                //case 1
-      //          strcpy(lineone, "Set Alarm");
+      // strcpy(lineone, "Set Alarm");
       if (myBtn1.wasPressed())
         STATE = SET_ALARM,
         printoled = !printoled;
@@ -209,12 +230,12 @@ void loop()
         STATE = MENU_SET_EXIT,
         printoled = !printoled;
       else if (myBtn3.wasPressed())
-        STATE = MENU_SET_TIME ,
+        STATE = MENU_SET_TIME,
         printoled = !printoled;
       break;
 
     case MENU_SET_TIME:               // case 2
-      //        using alarm code here for now
+      // using alarm code here for now
       if (myBtn1.wasPressed())
         STATE = SET_TIME,
         printoled = !printoled;
@@ -227,7 +248,7 @@ void loop()
       break;
 
     case MENU_SET_EXIT:             // case 3
-      //        using alarm code here for now
+      // using alarm code here for now
       if (myBtn1.wasPressed())
         STATE = WAIT,
         printoled = !printoled;
@@ -240,77 +261,57 @@ void loop()
       break;
 
 
-    case SET_ALARM:             // case 4
+    case SET_ALARM:             // case 4: Exit  Plus  Minus
       if (myBtn1.wasPressed())
         STATE = WAIT,
         printoled = !printoled;
       else if (myBtn2.wasPressed())
-        STATE = INCR;
+        incrementTime();
       else if (myBtn3.wasPressed())
-        STATE = DECR;
+        decrementTime();
       else if (myBtn2.wasReleased())       // reset the long press interval
         rpt = REPEAT_FIRST,
-        SPEED1 = LOW;
+        SPEED = LOW;
       else if (myBtn3.wasReleased())
         rpt = REPEAT_FIRST,
-        SPEED1 = LOW;
+        SPEED = LOW;
 
       else if (myBtn2.pressedFor(rpt))     // check for long press
       {
-        if (SPEED1 == HIGH) {
+        printoled = !printoled;
+        if (SPEED == HIGH) {
           rpt += REPEAT_INCR_FAST;
         }
         else {
-          rpt += REPEAT_INCR;            // increment the long press interval
+          rpt += REPEAT_INCR;          // increment the long press interval
         }
-        STATE = INCR;
+        incrementTime();
         if (rpt > FAST_THRESHOLD) {
-          SPEED1 = HIGH;
+          SPEED = HIGH;
         }
       }
 
       else if (myBtn3.pressedFor(rpt))
       {
-        if (SPEED1 == HIGH) {
-          rpt += REPEAT_INCR_FAST;             // increment the long press interval
+        printoled = !printoled;
+        if (SPEED == HIGH) {
+          rpt += REPEAT_INCR_FAST;     // increment the long press interval
         }
         else {
           rpt += REPEAT_INCR;
         }
-        STATE = DECR;
+        decrementTime();
         if (rpt > FAST_THRESHOLD) {
-          SPEED1 = HIGH;
+          SPEED = HIGH;
         }
       }
       break;
 
-
-
     case SET_TIME:             // case 5
-      if (myBtn1.wasPressed())
+      if (myBtn1.wasPressed()) {
         STATE = WAIT,
         printoled = !printoled;
-
-      break;
-
-    case INCR:  // case 6
-      alarmsecond++;    // increment the counter
-      if (alarmsecond > 59) {  // but not more than the specified maximum
-        alarmminute++;
-        alarmsecond = 0;
       }
-      printoled = !printoled;
-      STATE = SET_ALARM;
-      break;
-
-    case DECR:   // case 7
-      alarmsecond--;  // decrement the counter
-      if (alarmsecond < 0) {  // but not less than the specified minimum
-        alarmminute--;
-        alarmsecond = 59;
-      }
-      printoled = !printoled;
-      STATE = SET_ALARM;
       break;
   }
 
@@ -330,6 +331,28 @@ void loop()
   //  oled.println(linefour);
   }
 */
+
+void stateMachine()
+{
+  
+}
+
+void incrementTime()
+{
+  alarmsecond++;          // increment the counter
+  if (alarmsecond > 59)   // but not more than the specified maximum
+    alarmminute++,
+    alarmsecond = 0;
+}
+
+void decrementTime()
+{
+  alarmsecond--;         // decrement the counter
+  if (alarmsecond < 0)   // but not less than the specified minimum
+    alarmminute--,
+    alarmsecond = 59;
+}
+
 void OLEDprintTime()
 {
 
@@ -344,19 +367,26 @@ void OLEDprintTime()
   // oled.setInvertMode (true);
   oled.println(String(rtc.second())); // Print second
 }
-void OLEDprintAlarm()
-{
-  oled.set1X();
-  oled.print("Alarm : ");
-  oled.print(String(alarmhour) + ":"); // Print hour
-  if (alarmminute < 10)
-    oled.print('0'); // Print leading '0' for second
-  oled.print(String(alarmminute) + ":"); // Print min
-  if (alarmsecond < 10)
-    oled.print('0'); // Print leading '0' for second
 
-  oled.println(String(alarmsecond)); // Print sec
+void OLEDprintAlarm(bool Alarm_on_or_off)
+{
+  //oled.set1X();  // font size
+  oled.print("Alarm : ");
+  if (Alarm_on_or_off == HIGH | STATE == SET_ALARM)
+  {
+    oled.print(String(alarmhour) + ":"); // Print hour
+    if (alarmminute < 10)
+      oled.print('0'); // Print leading '0' for second
+    oled.print(String(alarmminute) + ":"); // Print min
+    if (alarmsecond < 10)
+      oled.print('0'); // Print leading '0' for second
+    oled.println(String(alarmsecond)); // Print sec
+  }
+  else {
+    oled.println("Off        ");
+  }
 }
+
 void LCDprintButtonState()
 {
   //  oled.print(bool(led1State) + ":"); //
