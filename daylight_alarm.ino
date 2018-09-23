@@ -26,29 +26,38 @@
 #define I2C_ADDRESS 0x3C
 SSD1306AsciiAvrI2c oled;
 
-// Input pin assignments
-const byte BUTTON1_PIN(A0),              // connect a button switch from this pin to ground
-      BUTTON2_PIN(A1),              // connect a button switch from this pin to ground
-      BUTTON3_PIN(A2),              // connect a button switch from this pin to ground
-      BUTTON4_PIN(A3);              // connect a button switch from this pin to ground-not connected
+// Pin assignments in order around arduino micro
+// pin 0 - NC TXD1 only
+// pin 1 - NC RXD1 only
+// pin 2 - SDA for OLED
+// pin 3 - SCL for OLED
+// pin 4 - top input
+// pin 5 - NC (pwm)
+// pin 6 - NC (pwm)
+// pin 7 - top input
+// pin 8 -
+#define DS13074_CS_PIN 8 // DeadOn RTC Chip-select pin
+// pin 9 - PWM Control for LED driver is this warm or cool?
+int   LED_PIN1 = 9;
+// pin 10 - PWM Control for LED driver is this warm or cool?
+int   LED_PIN2 = 10;
+// pin 16 - MOSI RTC
+// pin 14 - MISO RTC
+// pin 15 - SCK RTC
+// pins A0, A1, A2, A3  - Analogue pins for buttons
+// connect a button from these pins to ground (internal pull-ups enabled)
+const byte BUTTON1_PIN(A0), BUTTON2_PIN(A1), BUTTON3_PIN(A2), BUTTON4_PIN(A3); 
 
-Button myBtn1(BUTTON1_PIN), myBtn2(BUTTON2_PIN), myBtn3(BUTTON3_PIN);       // define the button
+Button myBtn1(BUTTON1_PIN), myBtn2(BUTTON2_PIN), myBtn3(BUTTON3_PIN), myBtn4(BUTTON4_PIN);       // define the buttons
 
-// Output pin assignments
-const byte LED_PIN1(8),                // Output 1
-      LED_PIN2(9);                // Output 2
-
-// detecting button repeats
 const unsigned long REPEAT_FIRST(500),          // ms required before repeating on long press
       REPEAT_INCR(100),           // repeat interval for long press
       REPEAT_INCR_FAST(20),
       FAST_THRESHOLD(2000);
+
 static bool
 printoled = LOW,            // flag to update screen
-SPEED1 = LOW,                // for speeding up the counter after the button is pressed for a long time
-led1State = LOW,            // a variable that keeps the current LED status
-led2State = LOW;            // a variable that keeps the current LED status
-
+SPEED1 = LOW;                // for speeding up the counter after the button is pressed for a long time
 
 // set alarm values - probably dont need seconds, month or year setting week day would be nice
 int alarmhour = 20;
@@ -95,7 +104,8 @@ void setup()
   // Start Outputs
   pinMode(LED_PIN1, OUTPUT);   // set the LED pin as an output
   pinMode(LED_PIN2, OUTPUT);   // set the LED pin as an output
-
+  analogWrite(LED_PIN1, 0); // should start it as off
+  analogWrite(LED_PIN2, 0); // should start it as off
 }
 //char lineone[16] = " "; // string for first line change[16] to length of line for neatness
 //char linefour[16] = " ";
@@ -194,9 +204,13 @@ void loop()
         printoled = !printoled;
       else if (myBtn2.wasPressed())
         Alarm_on_or_off = HIGH,
+        LED1_On(),
+        LED2_On(),
         printoled = !printoled;
       else if (myBtn3.wasPressed())
         Alarm_on_or_off = LOW,
+        LED1_Off(),
+        LED2_Off(),
         printoled = !printoled;      // something changed tell the screen to update
       break;
 
@@ -316,20 +330,36 @@ void loop()
 
 }
 //End of loop
-/*
-  void OLEDlineOne()
-  {
 
-  //   oled.print ("state = ");
-  //   oled.print (STATE);
-  //  oled.println(lineone);
-   //oled.println(" : ");
+void LED1_On () {
+  /* analogWrite(LEDcontrol, 0); // should be on*/
+  for (int x = 0; x <= 255; x++) {
+    analogWrite(LED_PIN1, x);
+    delay(30);
   }
-  //void OLEDlinefour()
-  {//
-  //  oled.println(linefour);
+}
+void LED1_Off () {
+  /*  analogWrite(LEDcontrol, 255); // should be off*/
+  for (int x = 255; x >= 0; x--) {
+    analogWrite(LED_PIN1, x);
+    delay(30);
   }
-*/
+}
+void LED2_On () {
+  /* analogWrite(LEDcontrol, 0); // should be on*/
+  for (int x = 0; x <= 255; x++) {
+    analogWrite(LED_PIN2, x);
+    delay(30);
+  }
+}
+void LED2_Off () {
+  /*  analogWrite(LEDcontrol, 255); // should be off*/
+  for (int x = 255; x >= 0; x--) {
+    analogWrite(LED_PIN2, x);
+    delay(30);
+  }
+}
+
 void OLEDprintTime()
 {
 
