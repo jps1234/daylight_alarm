@@ -27,26 +27,18 @@
 SSD1306AsciiAvrI2c oled;
 
 // Input pin assignments
-const byte
-/*
-    BUTTON1_PIN(4),              // connect a button switch from this pin to ground
-    BUTTON2_PIN(5),              // connect a button switch from this pin to ground
-    BUTTON3_PIN(6),              // connect a button switch from this pin to ground
-    BUTTON4_PIN(7);              // connect a button switch from this pin to ground-not connected
-*/
-
-BUTTON1_PIN(A0),              // connect a button switch from this pin to ground
-            BUTTON2_PIN(A1),              // connect a button switch from this pin to ground
-            BUTTON3_PIN(A2),              // connect a button switch from this pin to ground
-            BUTTON4_PIN(A3);              // connect a button switch from this pin to ground-not connected
+const byte BUTTON1_PIN(A0),              // connect a button switch from this pin to ground
+      BUTTON2_PIN(A1),              // connect a button switch from this pin to ground
+      BUTTON3_PIN(A2),              // connect a button switch from this pin to ground
+      BUTTON4_PIN(A3);              // connect a button switch from this pin to ground-not connected
 
 Button myBtn1(BUTTON1_PIN), myBtn2(BUTTON2_PIN), myBtn3(BUTTON3_PIN);       // define the button
 
-const unsigned long
-REPEAT_FIRST(500),          // ms required before repeating on long press
-             REPEAT_INCR(100),           // repeat interval for long press
-             REPEAT_INCR_FAST(20),
-             FAST_THRESHOLD(2000);
+const unsigned long REPEAT_FIRST(500),          // ms required before repeating on long press
+      REPEAT_INCR(100),           // repeat interval for long press
+      REPEAT_INCR_FAST(20),
+      FAST_THRESHOLD(2000);
+      
 static bool
 printoled = LOW,            // flag to update screen
 SPEED1 = LOW;                // for speeding up the counter after the button is pressed for a long time
