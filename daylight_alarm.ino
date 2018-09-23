@@ -21,7 +21,7 @@
 
 //RTC
 // Configurable Pin Definitions //
-#define DS13074_CS_PIN 10 // DeadOn RTC Chip-select pin
+
 //OLED
 #define I2C_ADDRESS 0x3C
 SSD1306AsciiAvrI2c oled;
