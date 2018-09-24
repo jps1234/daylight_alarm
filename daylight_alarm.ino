@@ -8,7 +8,7 @@
   Arduino Button Library
   https://github.com/JChristensen/JC_Button
 ****************************************************************************
-*github working branch
+  github working branch
 */
 
 #include <SPI.h>
@@ -33,9 +33,11 @@ SSD1306AsciiAvrI2c oled;
 // pin 2 - SDA for OLED
 // pin 3 - SCL for OLED
 // pin 4 - top input
+const byte BUTTON5_PIN(4);
 // pin 5 - NC (pwm)
 // pin 6 - NC (pwm)
 // pin 7 - top input
+const byte BUTTON6_PIN(7);
 // pin 8 -
 #define DS13074_CS_PIN 8 // DeadOn RTC Chip-select pin
 // pin 9 - PWM Control for LED driver is this warm or cool?
@@ -47,9 +49,9 @@ int   LED_PIN2 = 10;
 // pin 15 - SCK RTC
 // pins A0, A1, A2, A3  - Analogue pins for buttons
 // connect a button from these pins to ground (internal pull-ups enabled)
-const byte BUTTON1_PIN(A0), BUTTON2_PIN(A1), BUTTON3_PIN(A2), BUTTON4_PIN(A3); 
+const byte BUTTON1_PIN(A0), BUTTON2_PIN(A1), BUTTON3_PIN(A2), BUTTON4_PIN(A3);
 
-Button myBtn1(BUTTON1_PIN), myBtn2(BUTTON2_PIN), myBtn3(BUTTON3_PIN), myBtn4(BUTTON4_PIN);       // define the buttons
+Button myBtn1(BUTTON1_PIN), myBtn2(BUTTON2_PIN), myBtn3(BUTTON3_PIN), myBtn4(BUTTON4_PIN), myBtn5(BUTTON5_PIN, 200), myBtn6(BUTTON6_PIN, 200);       // define the buttons
 
 const unsigned long REPEAT_FIRST(500),          // ms required before repeating on long press
       REPEAT_INCR(100),           // repeat interval for long press
@@ -99,8 +101,12 @@ void setup()
 
   // Start buttons
   myBtn1.begin();              // initialize the button object
-  myBtn2.begin();              // initialize the button object
-  myBtn3.begin();              // initialize the button object
+  myBtn2.begin();
+  myBtn3.begin();
+  myBtn4.begin();
+  myBtn5.begin();
+  myBtn6.begin();
+
 
   // Start Outputs
   pinMode(LED_PIN1, OUTPUT);   // set the LED pin as an output
@@ -119,10 +125,34 @@ void loop()
   myBtn1.read();                   // read the buttons
   myBtn2.read();
   myBtn3.read();
+  myBtn4.read();
+  myBtn5.read();
+  myBtn6.read();
 
-  // Call rtc.update() to update all rtc.seconds(), rtc.minutes(),
-  // etc. return functions.
+
+  if (myBtn4.wasPressed())
+    oled.ssd1306WriteCmd(SSD1306_DISPLAYOFF),
+                         Serial.println ("button 4 pressed");
+  else if (myBtn4.wasReleased())
+    oled.ssd1306WriteCmd(SSD1306_DISPLAYON),
+                         Serial.println ("button 4 released");
+
+  if (myBtn5.wasPressed())
+    oled.ssd1306WriteCmd(SSD1306_DISPLAYOFF),
+                         Serial.println ("button 5 pressed");
+  else if (myBtn5.wasReleased())
+    oled.ssd1306WriteCmd(SSD1306_DISPLAYON),
+                         Serial.println ("button 5 released");
+
+  if (myBtn6.wasPressed())
+    oled.ssd1306WriteCmd(SSD1306_DISPLAYOFF),
+                         Serial.println ("button 6 pressed");
+  else if (myBtn6.wasReleased())
+    oled.ssd1306WriteCmd(SSD1306_DISPLAYON),
+                         Serial.println ("button 6 released");
+
   rtc.update();
+
 
   if (rtc.second() != lastSecond) // If the second has changed
   {
