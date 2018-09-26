@@ -60,7 +60,9 @@ const unsigned long REPEAT_FIRST(500),          // ms required before repeating 
 
 static bool
 printoled = LOW,            // flag to update screen
-SPEED1 = LOW;                // for speeding up the counter after the button is pressed for a long time
+SPEED1 = LOW,                // for speeding up the counter after the button is pressed for a long time
+Alarm_on_or_off = LOW;        //starting point for alarm state
+
 
 // set alarm values - probably dont need seconds, month or year setting week day would be nice
 int alarmhour = 20;
@@ -116,7 +118,7 @@ void setup()
 }
 //char lineone[16] = " "; // string for first line change[16] to length of line for neatness
 //char linefour[16] = " ";
-static bool Alarm_on_or_off = LOW;
+
 
 void loop()
 {
