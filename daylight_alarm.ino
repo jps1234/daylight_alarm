@@ -129,27 +129,31 @@ void loop()
   myBtn5.read();
   myBtn6.read();
 
-
-  if (myBtn4.wasPressed())
+  // using is pressed to account for when it is turned on maybe a flag would be better
+  if (myBtn4.isPressed())
     oled.ssd1306WriteCmd(SSD1306_DISPLAYOFF),
                          Serial.println ("button 4 pressed");
-  else if (myBtn4.wasReleased())
+  else if (myBtn4.isReleased())
     oled.ssd1306WriteCmd(SSD1306_DISPLAYON),
                          Serial.println ("button 4 released");
 
   if (myBtn5.wasPressed())
-    oled.ssd1306WriteCmd(SSD1306_DISPLAYOFF),
-                         Serial.println ("button 5 pressed");
+    Alarm_on_or_off = HIGH,
+    printoled = !printoled,
+    Serial.println ("button 5 pressed");
   else if (myBtn5.wasReleased())
-    oled.ssd1306WriteCmd(SSD1306_DISPLAYON),
-                         Serial.println ("button 5 released");
+    printoled = !printoled,
+    Alarm_on_or_off = LOW,
+    Serial.println ("button 5 released");
 
   if (myBtn6.wasPressed())
-    oled.ssd1306WriteCmd(SSD1306_DISPLAYOFF),
-                         Serial.println ("button 6 pressed");
+    LED1_On(),
+            LED2_On(),
+            Serial.println ("button 6 pressed");
   else if (myBtn6.wasReleased())
-    oled.ssd1306WriteCmd(SSD1306_DISPLAYON),
-                         Serial.println ("button 6 released");
+    LED1_Off(),
+             LED2_Off(),
+             Serial.println ("button 6 released");
 
   rtc.update();
 
