@@ -80,7 +80,15 @@ enum states_t {WAIT, MENU_SET_ALARM, MENU_SET_TIME, MENU_SET_EXIT, SET_ALARM, SE
 //enum states_t {WAIT, INCR, DECR};       // states for the state machine old working
 static states_t STATE;              // current state machine state
 
+unsigned long dimmerStart = 0L;
+unsigned long dimmerStop = 0L;
 
+const long LED1_on_time = 2000; // time in ms that light takes to turn on
+const long LED1_off_time = 2000; // time in ms that light takes to turn off
+
+static bool
+turning_LED1_on = LOW,
+turning_LED1_off = LOW;
 
 void setup()
 {
@@ -132,10 +140,10 @@ void loop()
   myBtn6.read();
 
   // using is pressed to account for when it is turned on maybe a flag would be better
-  if (myBtn4.isPressed())
+  if (myBtn4.wasPressed())
     oled.ssd1306WriteCmd(SSD1306_DISPLAYOFF),
                          Serial.println ("button 4 pressed");
-  else if (myBtn4.isReleased())
+  else if (myBtn4.wasReleased())
     oled.ssd1306WriteCmd(SSD1306_DISPLAYON),
                          Serial.println ("button 4 released");
 
@@ -149,14 +157,44 @@ void loop()
     Serial.println ("button 5 released");
 
   if (myBtn6.wasPressed())
-    LED1_On(),
-            LED2_On(),
-            Serial.println ("button 6 pressed");
-  else if (myBtn6.wasReleased())
-    LED1_Off(),
-             LED2_Off(),
-             Serial.println ("button 6 released");
+    dimmerStart = millis(),
+    turning_LED1_on = HIGH,
+    turning_LED1_off = LOW,
+    Serial.println ("button 6 pressed");
+ if (myBtn6.wasReleased())
+    dimmerStop = LED1_off_time + millis(),
+    turning_LED1_off = HIGH,
+    turning_LED1_on = LOW,
+    Serial.println ("button 6 released");
 
+  if (turning_LED1_on == HIGH) {
+    unsigned long time_elapsed = millis() - dimmerStart;
+    int LED1_brightness = 255 * time_elapsed / LED1_on_time;
+    Serial.println (LED1_brightness);
+    if (LED1_brightness <= 254) {
+      analogWrite(LED_PIN1, LED1_brightness);
+    //  LED1_off_time = time_elapsed
+      
+    }
+    else if (LED1_brightness >= 255) {
+      turning_LED1_on = LOW;
+    }
+  }
+  //note turns on to full brightness
+      if (turning_LED1_off == HIGH)  {
+    unsigned long time_elapsed = dimmerStop - millis();
+    //    Serial.println (time_elapsed);
+    int LED1_brightness = 255 * time_elapsed / LED1_off_time;
+    Serial.println (LED1_brightness);
+    if (LED1_brightness >= 1) {
+      analogWrite(LED_PIN1, LED1_brightness);
+    }
+    else if (LED1_brightness <= 0) {
+           analogWrite (LED_PIN1, 0), // for some reason it didnt turn off
+      turning_LED1_off = LOW;
+    }
+  }
+  
   rtc.update();
 
 
@@ -225,11 +263,6 @@ void loop()
       oled.println("Exit   Plus  Minus");
     else if (STATE == 7)
       oled.println("Exit   Plus  Minus");
-
-
-
-
-    //     OLEDlinefour ();
   }
 
   switch (STATE)
@@ -241,13 +274,13 @@ void loop()
         printoled = !printoled;
       else if (myBtn2.wasPressed())
         Alarm_on_or_off = HIGH,
-        LED1_On(),
-        LED2_On(),
+        //LED1_On(),
+        //LED2_On(),
         printoled = !printoled;
       else if (myBtn3.wasPressed())
         Alarm_on_or_off = LOW,
-        LED1_Off(),
-        LED2_Off(),
+        //LED1_Off(),
+        //LED2_Off(),
         printoled = !printoled;      // something changed tell the screen to update
       break;
 
