@@ -8,7 +8,7 @@
   Arduino Button Library
   https://github.com/JChristensen/JC_Button
 ****************************************************************************
-  github working branch
+  github working branch changes reset
 */
 
 #include <SPI.h>
