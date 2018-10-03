@@ -85,10 +85,6 @@ unsigned long LED1_dimmerStop = 0L;
 unsigned long LED1_count_up_elapsed = 0L;
 unsigned long LED1_count_down_elapsed = 0L;
 
-unsigned long LED2_dimmerStart = 0L;
-unsigned long LED2_dimmerStop = 0L;
-unsigned long LED2_count_elapsed = 0L;
-
 const long LED1_on_time = 2000; // time in ms that light takes to turn on
 const long LED1_off_time = 2000; // time in ms that light takes to turn off
 const long LED2_on_time = 2000; // time in ms that light takes to turn on
@@ -172,16 +168,14 @@ void loop()
     Serial.println ("button 5 released");
 
   if (myBtn6.wasPressed())
-    LED1_dimmerStart = millis(),// + LED1_count_down_elapsed, //  + LED1_count_elapsed, //in case it was turning off
-    // LED2_dimmerStart = millis() - LED2_count_elapsed, //in case it was turning off
+    LED1_dimmerStart = millis(),
     turning_LED1_on = HIGH,
     turning_LED1_off = LOW,
     //turning_LED2_on = HIGH,
     //turning_LED2_off = LOW,
     Serial.println ("button 6 pressed");
   if (myBtn6.wasReleased())
-    LED1_dimmerStop = millis(),// + LED1_count_up_elapsed, // + LED1_count_elapsed,
-    // LED2_dimmerStop = LED2_count_elapsed + millis(), //accounts for LED not being fully bright
+    LED1_dimmerStop = millis(),
     turning_LED1_off = HIGH,
     turning_LED1_on = LOW,
     //turning_LED2_off = HIGH,
@@ -189,7 +183,7 @@ void loop()
     Serial.println ("button 6 released");
 
   if (turning_LED1_on == HIGH) {
-    LED1_count_up_elapsed = millis() - LED1_dimmerStart,// + LED1_count_down_elapsed;
+    LED1_count_up_elapsed = millis() - LED1_dimmerStart,
     // Serial.println (LED1_count_up_elapsed);
     LED1_brightness_on = LED1_brightness_off + (255 * LED1_count_up_elapsed / LED1_on_time);
     Serial.println (LED1_brightness_on);
@@ -204,7 +198,7 @@ void loop()
   }
 
   if (turning_LED1_off == HIGH)  {
-    LED1_count_down_elapsed = millis() - LED1_dimmerStop,// + LED1_count_up_elapsed;
+    LED1_count_down_elapsed = millis() - LED1_dimmerStop,
     // Serial.println (LED1_count_down_elapsed);
     LED1_brightness_off = LED1_brightness_on - (255 * LED1_count_down_elapsed / LED1_off_time);
     Serial.println (LED1_brightness_off);
@@ -212,86 +206,13 @@ void loop()
       analogWrite(LED_PIN1, LED1_brightness_off);
     }
     else if (LED1_brightness_off <= 0) {
-     analogWrite (LED_PIN1, 0), // for some reason it didnt turn off fully
-      turning_LED1_off = LOW;
+      analogWrite (LED_PIN1, 0), // for some reason it didnt turn off fully
+                  turning_LED1_off = LOW;
     }
   }
 
 
-  /*
-    if (myBtn6.wasPressed())
-      LED1_dimmerStart = millis() - LED1_count_elapsed, //in case it was turning off
-      LED2_dimmerStart = millis() - LED2_count_elapsed, //in case it was turning off
-      turning_LED1_on = HIGH,
-      turning_LED1_off = LOW,
-      turning_LED2_on = HIGH,
-      turning_LED2_off = LOW,
-      Serial.println ("button 6 pressed");
-    if (myBtn6.wasReleased())
-      LED1_dimmerStop = LED1_count_elapsed + millis(), //accounts for LED not being fully bright
-      LED2_dimmerStop = LED2_count_elapsed + millis(), //accounts for LED not being fully bright
-      turning_LED1_off = HIGH,
-      turning_LED1_on = LOW,
-      turning_LED2_off = HIGH,
-      turning_LED2_on = LOW,
-      Serial.println ("button 6 released");
 
-    if (turning_LED1_on == HIGH) {
-      LED1_count_elapsed = millis() - LED1_dimmerStart;
-      int LED1_brightness = 255 * LED1_count_elapsed / LED1_on_time;
-      //Serial.println (LED1_brightness);
-      if (LED1_brightness <= 254) {
-        analogWrite(LED_PIN1, LED1_brightness);
-        //  LED1_off_time = time_elapsed
-
-      }
-      else if (LED1_brightness >= 255) {
-        turning_LED1_on = LOW;
-      }
-    }
-
-    if (turning_LED1_off == HIGH)  {
-      LED1_count_elapsed = LED1_dimmerStop - millis();
-      //    Serial.println (time_elapsed);
-      int LED1_brightness = 255 * LED1_count_elapsed / LED1_off_time;
-      Serial.println (LED1_brightness);
-      if (LED1_brightness >= 1) {
-        analogWrite(LED_PIN1, LED1_brightness);
-      }
-      else if (LED1_brightness <= 0) {
-        analogWrite (LED_PIN1, 0), // for some reason it didnt turn off
-                    turning_LED1_off = LOW;
-      }
-    }
-
-    if (turning_LED2_on == HIGH) {
-      LED2_count_elapsed = millis() - LED2_dimmerStart;
-      int LED2_brightness = 255 * LED2_count_elapsed / LED2_on_time;
-      //Serial.println (LED1_brightness);
-      if (LED2_brightness <= 254) {
-        analogWrite(LED_PIN2, LED2_brightness);
-        //  LED1_off_time = time_elapsed
-
-      }
-      else if (LED2_brightness >= 255) {
-        turning_LED2_on = LOW;
-      }
-    }
-
-    if (turning_LED2_off == HIGH)  {
-      LED2_count_elapsed = LED2_dimmerStop - millis();
-      //    Serial.println (time_elapsed);
-      int LED2_brightness = 255 * LED2_count_elapsed / LED2_off_time;
-      //Serial.println (LED2_brightness);
-      if (LED2_brightness >= 1) {
-        analogWrite(LED_PIN2, LED2_brightness);
-      }
-      else if (LED2_brightness <= 0) {
-        analogWrite (LED_PIN2, 0), // for some reason it didnt turn off
-                    turning_LED2_off = LOW;
-      }
-    }
-  */
   rtc.update();
 
 
