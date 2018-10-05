@@ -41,9 +41,9 @@ const byte BUTTON6_PIN(7);
 // pin 8 -
 #define DS13074_CS_PIN 8 // DeadOn RTC Chip-select pin
 // pin 9 - PWM Control for LED driver is this warm or cool?
-int   LED_PIN1 = 9;
+const byte   LED_PIN1 = 9;
 // pin 10 - PWM Control for LED driver is this warm or cool?
-int   LED_PIN2 = 10;
+const byte   LED_PIN2 = 10;
 // pin 16 - MOSI RTC
 // pin 14 - MISO RTC
 // pin 15 - SCK RTC
@@ -91,10 +91,10 @@ unsigned long LED2_dimmerStop = 0L;
 unsigned long LED2_count_up_elapsed = 0L;
 unsigned long LED2_count_down_elapsed = 0L;
 
-const long LED1_on_time = 2000; // time in ms that light takes to turn on
-const long LED1_off_time = 2000; // time in ms that light takes to turn off
-const long LED2_on_time = 2000; // time in ms that light takes to turn on
-const long LED2_off_time = 2000; // time in ms that light takes to turn off
+const long LED1_on_time = 4000; // time in ms that light takes to turn on
+const long LED1_off_time = 4000; // time in ms that light takes to turn off
+const long LED2_on_time = 4000; // time in ms that light takes to turn on
+const long LED2_off_time = 4000; // time in ms that light takes to turn off
 
 static bool
 turning_LED1_on = LOW,
@@ -102,11 +102,12 @@ turning_LED1_off = LOW,
 turning_LED2_on = LOW,
 turning_LED2_off = LOW;
 
-int
+long
 LED1_brightness_on = 0,
 LED1_brightness_off = 0,
 LED2_brightness_on = 0,
-LED2_brightness_off = 0;
+LED2_brightness_off = 0,
+max_brightness = 2000;
 
 
 void setup()
@@ -136,15 +137,17 @@ void setup()
   myBtn5.begin();
   myBtn6.begin();
 
-
+  setupPWM16();
   // Start Outputs
   pinMode(LED_PIN1, OUTPUT);   // set the LED pin as an output
   pinMode(LED_PIN2, OUTPUT);   // set the LED pin as an output
-  analogWrite(LED_PIN1, 0); // should start it as off
-  analogWrite(LED_PIN2, 0); // should start it as off
-}
-//char lineone[16] = " "; // string for first line change[16] to length of line for neatness
-//char linefour[16] = " ";
+  // analogWrite(LED_PIN1, 0); // should start it as off
+  // analogWrite(LED_PIN2, 0); // should start it as off
+  analogWrite16(LED_PIN1, 0);
+  analogWrite16(LED_PIN2, 0);
+
+
+} // end of setup
 
 
 void loop()
@@ -179,7 +182,7 @@ void loop()
     LED1_dimmerStart = millis(),
     turning_LED1_on = HIGH,
     turning_LED1_off = LOW,
-        LED2_dimmerStart = millis(),
+    LED2_dimmerStart = millis(),
     turning_LED2_on = HIGH,
     turning_LED2_off = LOW,
     //turning_LED2_on = HIGH,
@@ -199,57 +202,66 @@ void loop()
   if (turning_LED1_on == HIGH) {
     LED1_count_up_elapsed = millis() - LED1_dimmerStart,
     // Serial.println (LED1_count_up_elapsed);
-    LED1_brightness_on = LED1_brightness_off + (255 * LED1_count_up_elapsed / LED1_on_time);
+    LED1_brightness_on = LED1_brightness_off + (max_brightness * LED1_count_up_elapsed / LED1_on_time);
     Serial.println (LED1_brightness_on);
-    if (LED1_brightness_on <= 254) {
-      analogWrite(LED_PIN1, LED1_brightness_on);
+    if (LED1_brightness_on <= max_brightness-1) {
+      //analogWrite(LED_PIN1, LED1_brightness_on);
+      analogWrite16(LED_PIN1, LED1_brightness_on);
 
     }
-    else if (LED1_brightness_on >= 255) {
-      analogWrite (LED_PIN1, 255), // for some reason it didnt turn on  fully
-                  turning_LED1_on = LOW;
+    else if (LED1_brightness_on >= max_brightness) {
+      //analogWrite (LED_PIN1, 0xffff), // for some reason it didnt turn on  fully
+      analogWrite16(LED_PIN1, max_brightness);
+      turning_LED1_on = LOW;
     }
   }
 
   if (turning_LED1_off == HIGH)  {
     LED1_count_down_elapsed = millis() - LED1_dimmerStop,
     // Serial.println (LED1_count_down_elapsed);
-    LED1_brightness_off = LED1_brightness_on - (255 * LED1_count_down_elapsed / LED1_off_time);
+    LED1_brightness_off = LED1_brightness_on - (max_brightness * LED1_count_down_elapsed / LED1_off_time);
     Serial.println (LED1_brightness_off);
     if (LED1_brightness_off >= 1) {
-      analogWrite(LED_PIN1, LED1_brightness_off);
+      // analogWrite(LED_PIN1, LED1_brightness_off);
+      analogWrite16(LED_PIN1, LED1_brightness_off);
     }
     else if (LED1_brightness_off <= 0) {
-      analogWrite (LED_PIN1, 0), // for some reason it didnt turn off fully
-                  turning_LED1_off = LOW;
+      //analogWrite (LED_PIN1, 0), // for some reason it didnt turn off fully
+      analogWrite16(LED_PIN1, 0);
+      turning_LED1_off = LOW;
     }
   }
   if (turning_LED2_on == HIGH) {
     LED2_count_up_elapsed = millis() - LED2_dimmerStart,
     // Serial.println (LED1_count_up_elapsed);
-    LED2_brightness_on = LED2_brightness_off + (255 * LED2_count_up_elapsed / LED2_on_time);
+    LED2_brightness_on = LED2_brightness_off + (max_brightness * LED2_count_up_elapsed / LED2_on_time);
     Serial.println (LED2_brightness_on);
-    if (LED2_brightness_on <= 254) {
-      analogWrite(LED_PIN2, LED2_brightness_on);
+    if (LED2_brightness_on <= max_brightness-1) {
+      // analogWrite(LED_PIN2, LED2_brightness_on);
+      analogWrite16(LED_PIN2, LED2_brightness_on);
 
     }
-    else if (LED2_brightness_on >= 255) {
-      analogWrite (LED_PIN2, 255), // for some reason it didnt turn on  fully
-                  turning_LED2_on = LOW;
+    else if (LED2_brightness_on >= max_brightness) {
+      //analogWrite (LED_PIN2, 0xffff), // for some reason it didnt turn on  fully
+      analogWrite16(LED_PIN2, max_brightness);
+      turning_LED2_on = LOW;
     }
   }
 
   if (turning_LED2_off == HIGH)  {
     LED2_count_down_elapsed = millis() - LED2_dimmerStop,
     // Serial.println (LED1_count_down_elapsed);
-    LED2_brightness_off = LED2_brightness_on - (255 * LED2_count_down_elapsed / LED2_off_time);
+    LED2_brightness_off = LED2_brightness_on - (max_brightness * LED2_count_down_elapsed / LED2_off_time);
     Serial.println (LED2_brightness_off);
     if (LED2_brightness_off >= 1) {
-      analogWrite(LED_PIN2, LED1_brightness_off);
+      // analogWrite(LED_PIN2, LED2_brightness_off);
+      analogWrite16(LED_PIN2, LED2_brightness_off);
+
     }
     else if (LED2_brightness_off <= 0) {
-      analogWrite (LED_PIN2, 0), // for some reason it didnt turn off fully
-                  turning_LED2_off = LOW;
+      // analogWrite (LED_PIN2, 0), // for some reason it didnt turn off fully
+      analogWrite16(LED_PIN2, 0);
+      turning_LED2_off = LOW;
     }
   }
 
@@ -460,33 +472,17 @@ void loop()
 
 }
 //End of loop
+void setupPWM16() {
+  TCCR1A = bit (WGM11) | bit (COM1B1) | bit (COM1A1); // fast PWM, TOP = ICR1, Enable OCR1A and OCR1B as outputs clear on compare
+  TCCR1B = bit (WGM12) | bit (WGM12) | bit (CS10);   // fast PWM,  CS10 no prescaler p.s. WGM11, WGM12, WGM12 means TOP = ICR1
+  ICR1 = max_brightness;       /* TOP counter value */
+}
 
-void LED1_On () {
-  /* analogWrite(LEDcontrol, 0); // should be on*/
-  for (int x = 0; x <= 255; x++) {
-    analogWrite(LED_PIN1, x);
-    delay(30);
-  }
-}
-void LED1_Off () {
-  /*  analogWrite(LEDcontrol, 255); // should be off*/
-  for (int x = 255; x >= 0; x--) {
-    analogWrite(LED_PIN1, x);
-    delay(30);
-  }
-}
-void LED2_On () {
-  /* analogWrite(LEDcontrol, 0); // should be on*/
-  for (int x = 0; x <= 255; x++) {
-    analogWrite(LED_PIN2, x);
-    delay(30);
-  }
-}
-void LED2_Off () {
-  /*  analogWrite(LEDcontrol, 255); // should be off*/
-  for (int x = 255; x >= 0; x--) {
-    analogWrite(LED_PIN2, x);
-    delay(30);
+void analogWrite16(uint8_t pin, uint16_t val) //
+{
+  switch (pin) {
+    case  LED_PIN1: OCR1A = val; break;  //maybe this needs to be case  LED1: OCR1A = val; break;
+    case LED_PIN2: OCR1B = val; break;
   }
 }
 
