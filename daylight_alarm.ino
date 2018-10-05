@@ -85,6 +85,12 @@ unsigned long LED1_dimmerStop = 0L;
 unsigned long LED1_count_up_elapsed = 0L;
 unsigned long LED1_count_down_elapsed = 0L;
 
+
+unsigned long LED2_dimmerStart = 0L;
+unsigned long LED2_dimmerStop = 0L;
+unsigned long LED2_count_up_elapsed = 0L;
+unsigned long LED2_count_down_elapsed = 0L;
+
 const long LED1_on_time = 2000; // time in ms that light takes to turn on
 const long LED1_off_time = 2000; // time in ms that light takes to turn off
 const long LED2_on_time = 2000; // time in ms that light takes to turn on
@@ -98,7 +104,9 @@ turning_LED2_off = LOW;
 
 int
 LED1_brightness_on = 0,
-LED1_brightness_off = 0;
+LED1_brightness_off = 0,
+LED2_brightness_on = 0,
+LED2_brightness_off = 0;
 
 
 void setup()
@@ -171,6 +179,9 @@ void loop()
     LED1_dimmerStart = millis(),
     turning_LED1_on = HIGH,
     turning_LED1_off = LOW,
+        LED2_dimmerStart = millis(),
+    turning_LED2_on = HIGH,
+    turning_LED2_off = LOW,
     //turning_LED2_on = HIGH,
     //turning_LED2_off = LOW,
     Serial.println ("button 6 pressed");
@@ -178,6 +189,9 @@ void loop()
     LED1_dimmerStop = millis(),
     turning_LED1_off = HIGH,
     turning_LED1_on = LOW,
+    LED2_dimmerStop = millis(),
+    turning_LED2_off = HIGH,
+    turning_LED2_on = LOW,
     //turning_LED2_off = HIGH,
     //turning_LED2_on = LOW,
     Serial.println ("button 6 released");
@@ -208,6 +222,34 @@ void loop()
     else if (LED1_brightness_off <= 0) {
       analogWrite (LED_PIN1, 0), // for some reason it didnt turn off fully
                   turning_LED1_off = LOW;
+    }
+  }
+  if (turning_LED2_on == HIGH) {
+    LED2_count_up_elapsed = millis() - LED2_dimmerStart,
+    // Serial.println (LED1_count_up_elapsed);
+    LED2_brightness_on = LED2_brightness_off + (255 * LED2_count_up_elapsed / LED2_on_time);
+    Serial.println (LED2_brightness_on);
+    if (LED2_brightness_on <= 254) {
+      analogWrite(LED_PIN2, LED2_brightness_on);
+
+    }
+    else if (LED2_brightness_on >= 255) {
+      analogWrite (LED_PIN2, 255), // for some reason it didnt turn on  fully
+                  turning_LED2_on = LOW;
+    }
+  }
+
+  if (turning_LED2_off == HIGH)  {
+    LED2_count_down_elapsed = millis() - LED2_dimmerStop,
+    // Serial.println (LED1_count_down_elapsed);
+    LED2_brightness_off = LED2_brightness_on - (255 * LED2_count_down_elapsed / LED2_off_time);
+    Serial.println (LED2_brightness_off);
+    if (LED2_brightness_off >= 1) {
+      analogWrite(LED_PIN2, LED1_brightness_off);
+    }
+    else if (LED2_brightness_off <= 0) {
+      analogWrite (LED_PIN2, 0), // for some reason it didnt turn off fully
+                  turning_LED2_off = LOW;
     }
   }
 
