@@ -91,19 +91,20 @@ LED2_dimmerStop = 0L,
 LED2_count_up_elapsed = 0L,
 LED2_count_down_elapsed = 0L;
 
-unsigned int
+int
 LED1_brightness_on = 0,
 LED1_brightness_off = 0,
 LED2_brightness_on = 0,
 LED2_brightness_off = 0,
-max_brightness_LED1 = 100, //relates to pwm steps below...
-max_brightness_LED2 = 100, //as percent of PWM Steps
+max_brightness_LED1 = 40, //relates to pwm steps below...
+max_brightness_LED2 = 40, //as percent of PWM Steps
 PWM_Steps_LED1 = 0, //relates to pwm steps below...
 PWM_Steps_LED2 = 0, //as percent of PWM Steps
-PWM_Steps = 65535; //sent to ICR1 register max value 0xffff or 65535. higher the value the slower the refresh rate
+//PWM_Steps = 65535; //sent to ICR1 register max value 0xffff or 65535. higher the value the slower the refresh rate
+PWM_Steps = 32767;
 
 const long LED1_on_time = 4000; // time in ms that light takes to turn on
-const long LED1_off_time = 4000; // time in ms that light takes to turn off
+const long LED1_off_time = 500; // time in ms that light takes to turn off
 const long LED2_on_time = 4000; // time in ms that light takes to turn on
 const long LED2_off_time = 4000; // time in ms that light takes to turn off
 
@@ -185,18 +186,20 @@ void loop()
     LED1_dimmerStart = millis(),
     turning_LED1_on = HIGH,
     turning_LED1_off = LOW,
-    LED2_dimmerStart = millis(),
+/*    LED2_dimmerStart = millis(),
     turning_LED2_on = HIGH,
     turning_LED2_off = LOW,
+*/    
     Serial.println ("button 6 pressed");
+
   if (myBtn6.wasReleased())
     LED1_dimmerStop = millis(),
     turning_LED1_off = HIGH,
     turning_LED1_on = LOW,
-    LED2_dimmerStop = millis(),
+ /*   LED2_dimmerStop = millis(),
     turning_LED2_off = HIGH,
     turning_LED2_on = LOW,
-
+*/
     Serial.println ("button 6 released");
 
 
@@ -214,6 +217,10 @@ void loop()
     Serial.print (STATE);
     Serial.print (" ");
     printTime(); // Print the new time to serial
+    Serial.println("LED1 brightness: " + String(LED1_brightness_on) + " " + String(LED1_brightness_off));
+    Serial.println("LED1 time elapsed: " + String(LED1_count_up_elapsed) + " " + String(LED1_count_down_elapsed));
+    Serial.println("LED2: " + String(LED2_brightness_on) + " " + String(LED2_brightness_off));
+    Serial.println("LED2 time elapsed: " + String(LED2_count_up_elapsed) + " " + String(LED2_count_down_elapsed));
   }
   //   if (Alarm_on_or_off == HIGH)
   //       strcpy(lineone, "Alarm : ON   ");
@@ -411,6 +418,7 @@ void loop()
 
 void  Switch_LEDS()
 {
+  
   //convert max brightness out of 100 to max brightness out of whetever.
   PWM_Steps_LED1 = (PWM_Steps / 100 * max_brightness_LED1);
   PWM_Steps_LED2 = (PWM_Steps / 100 * max_brightness_LED2);
@@ -418,19 +426,21 @@ void  Switch_LEDS()
   // turn leds on and off
 
   if (turning_LED1_on == HIGH) {
-    LED1_count_up_elapsed = millis() - LED1_dimmerStart,
-    //Serial.println (LED1_count_up_elapsed);
-    LED1_brightness_on = LED1_brightness_off + (PWM_Steps_LED1 * LED1_count_up_elapsed / LED1_on_time); //4000
+    // calculate a new value for the brightness of LED1, being careful not to exceed the bounds of the scale
+    LED1_count_up_elapsed = millis() - LED1_dimmerStart;
+    LED1_brightness_on = LED1_brightness_off + (PWM_Steps_LED1 * LED1_count_up_elapsed / LED1_on_time);
     // Serial.println (LED1_brightness_on);
     if (LED1_brightness_on <= PWM_Steps_LED1 - 1)
     {
-
       analogWrite16(LED_PIN1, LED1_brightness_on);
     }
 
     else if (LED1_brightness_on >= PWM_Steps_LED1) {
-      analogWrite16(LED_PIN1, PWM_Steps_LED1); //ensure on fully
+      LED1_brightness_on = PWM_Steps_LED1;
+      analogWrite16(LED_PIN1, LED1_brightness_on); //ensure on fully
       turning_LED1_on = LOW;
+      Serial.println("turning_LED1_on = LOW");
+      Serial.println (LED1_brightness_on);
     }
 
   }
@@ -440,15 +450,16 @@ void  Switch_LEDS()
     //Serial.println (LED1_count_down_elapsed);
     LED1_brightness_off = LED1_brightness_on - (PWM_Steps_LED1 * LED1_count_down_elapsed / LED1_off_time);
     //Serial.println (LED1_brightness_off);
-    if (LED1_brightness_off >= 1) {
+    if (LED1_brightness_off > 0) {
       analogWrite16(LED_PIN1, LED1_brightness_off);
     }
 
     else if (LED1_brightness_off <= 0) {
-      analogWrite16(LED_PIN1, 0); //turn off fully
+      LED1_brightness_off = 0;
+      analogWrite16(LED_PIN1, LED1_brightness_off); //turn off fully
       turning_LED1_off = LOW;
-
-
+      Serial.println("turning_LED1_off = LOW");
+      Serial.println (LED1_brightness_off);
     }
   }
 
@@ -465,8 +476,11 @@ void  Switch_LEDS()
     }
     else if (LED2_brightness_on >= PWM_Steps_LED2) {
       //analogWrite (LED_PIN2, 0xffff), // for some reason it didnt turn on  fully
-      analogWrite16(LED_PIN2, PWM_Steps_LED2);
+      LED2_brightness_on = PWM_Steps_LED2;
+      analogWrite16(LED_PIN2, LED2_brightness_on);
       turning_LED2_on = LOW;
+      Serial.println("turning_LED2_on = LOW");
+      Serial.println (LED2_brightness_on);
     }
   }
 
@@ -475,16 +489,18 @@ void  Switch_LEDS()
     // Serial.println (LED1_count_down_elapsed);
     LED2_brightness_off = LED2_brightness_on - (PWM_Steps_LED2 * LED2_count_down_elapsed / LED2_off_time);
     //Serial.println (LED2_brightness_off);
-    if (LED2_brightness_off >= 1) {
+    if (LED2_brightness_off > 0) {
       // analogWrite(LED_PIN2, LED2_brightness_off);
       analogWrite16(LED_PIN2, LED2_brightness_off);
 
     }
     else if (LED2_brightness_off <= 0) {
       // analogWrite (LED_PIN2, 0), // for some reason it didnt turn off fully
-      analogWrite16(LED_PIN2, 0);
+      LED2_brightness_off = 0;
       turning_LED2_off = LOW;
-
+      analogWrite16(LED_PIN2, LED2_brightness_off);
+      Serial.println("turning_LED2_off = LOW");
+      Serial.println (LED2_brightness_off);
     }
   }
 }
@@ -502,10 +518,12 @@ void analogWrite16(uint8_t pin, uint16_t val) //
 
       // Serial.print(String(val()) + ":"); // Print hour
   }
-  Serial.print ("OCR1A = ");
-  Serial.print (OCR1A);
-  Serial.print (" : LED1_brightness_on = ");
-  Serial.println (LED1_brightness_on);
+  //Serial.print ("OCR1A = ");
+  //Serial.println (OCR1A);
+  //Serial.print (" : LED1_brightness_on = ");
+  //Serial.print (LED1_brightness_on);
+  //Serial.print (" : LED1_brightness_off = ");
+  //Serial.println (LED1_brightness_off);
 }
 
 void OLEDprintTime()
