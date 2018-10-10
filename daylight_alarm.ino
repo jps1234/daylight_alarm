@@ -82,13 +82,12 @@ LED1_brightness_turning_off = 0,//brightness of LED when turning off
 LED2_brightness_turning_on = 0, //brightness of LED when turning on
 LED2_brightness_turning_off = 0, //brightness of LED when turning off
 
-max_brightness_LED1 = 40, // out of 100 relates to pwm steps below...
-max_brightness_LED2 = 40, // out of 100 relates to pwm steps below...
+max_brightness_LED1 = 100, // out of 100 relates to pwm steps below...
+max_brightness_LED2 = 100, // out of 100 relates to pwm steps below...
 PWM_Steps_LED1 = 0, //  PWM_Steps/100 * max_brightness_LED1
 PWM_Steps_LED2 = 0, //as percent of PWM Steps
-//PWM_Steps = 65535; //sent to ICR1 register max value 0xffff or 65535. higher the value the slower the refresh rate
-PWM_Steps = 32767; // less than 32,767 otherwise code wraps around and breaks
-
+PWM_Steps = 32767; //sent to ICR1 register. less than 32,767 otherwise code wraps around and breaks
+//PWM_Steps = 65535; // max value 0xffff or 65535. higher the value the slower the refresh rate
 const long
 LED1_turn_on_time = 4000, // time in ms that light takes to turn on
 LED1_turn_off_time = 3000, // time in ms that light takes to turn off
