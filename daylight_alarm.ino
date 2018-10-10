@@ -83,11 +83,18 @@ PWM_Steps_LED1 = 0, //relates to pwm steps below...
 PWM_Steps_LED2 = 0, //as percent of PWM Steps
 //PWM_Steps = 65535; //sent to ICR1 register max value 0xffff or 65535. higher the value the slower the refresh rate
 PWM_Steps = 32767; //less than
-
+/*
 const long LED1_on_time = 4000; // time in ms that light takes to turn on
-const long LED1_off_time = 4000; // time in ms that light takes to turn off
+const long LED1_off_time = 1000; // time in ms that light takes to turn off
 const long LED2_on_time = 4000; // time in ms that light takes to turn on
 const long LED2_off_time = 4000; // time in ms that light takes to turn off
+
+*/
+unsigned long
+LED1_on_time = 4000, // time in ms that light takes to turn on
+LED1_off_time = 2000, // time in ms that light takes to turn off
+LED2_on_time = 4000, // time in ms that light takes to turn on
+LED2_off_time = 4000; // time in ms that light takes to turn off
 
 static bool
 turning_LED1_on = LOW,
@@ -95,14 +102,14 @@ turning_LED1_off = LOW,
 turning_LED2_on = LOW,
 turning_LED2_off = LOW;
 
-static int
+int
 LED1_brightness_on = 0, //brightness of LED when turning on
 LED1_brightness_off = 0,//brightness of LED when turning off
 LED2_brightness_on = 0, //brightness of LED when turning on
 LED2_brightness_off = 0; //brightness of LED when turning off
 
 // time elapsed since the last time switch was triggered
-static unsigned long
+unsigned long
 LED1_dimmerStart = 0L, //time in millis when the button is pressed
 LED1_dimmerStop = 0L, //time in millis when the button is released
 LED2_dimmerStart = 0L, //time in millis when the button is pressed
@@ -179,9 +186,9 @@ void loop()
     LED1_dimmerStart = millis(),
     turning_LED1_on = HIGH,
     turning_LED1_off = LOW,
-    LED2_dimmerStart = millis(),
-    turning_LED2_on = HIGH,
-    turning_LED2_off = LOW,
+    //LED2_dimmerStart = millis(),
+    //turning_LED2_on = HIGH,
+    //turning_LED2_off = LOW,
 
     Serial.println ("button 6 pressed");
 
@@ -189,14 +196,15 @@ void loop()
     LED1_dimmerStop = millis(),
     turning_LED1_off = HIGH,
     turning_LED1_on = LOW,
-    LED2_dimmerStop = millis(),
-    turning_LED2_off = HIGH,
-    turning_LED2_on = LOW,
+    //LED2_dimmerStop = millis(),
+    //turning_LED2_off = HIGH,
+    //turning_LED2_on = LOW,
 
     Serial.println ("button 6 released");
 
 
-  Switch_LEDS(LED1_dimmerStart, LED1_dimmerStop, LED2_dimmerStart, LED2_dimmerStop);
+  //Switch_LEDS(LED1_dimmerStart, LED1_dimmerStop, LED2_dimmerStart, LED2_dimmerStop);
+  Switch_LEDS();
   Update_Display();
   State_machine();
 
@@ -214,7 +222,9 @@ void loop()
 }
 //End of loop
 
-void  Switch_LEDS(unsigned long LED1_dimmerStart, unsigned long LED1_dimmerStop, unsigned long LED2_dimmerStart, unsigned long LED2_dimmerStop)
+//void  Switch_LEDS(unsigned long LED1_dimmerStart, unsigned long LED1_dimmerStop, unsigned long LED2_dimmerStart, unsigned long LED2_dimmerStop)
+void  Switch_LEDS()
+
 {
   // turn leds on and off
   // inputs:
@@ -235,7 +245,8 @@ void  Switch_LEDS(unsigned long LED1_dimmerStart, unsigned long LED1_dimmerStop,
 
     // calculate a new value for the brightness of LED1, being careful not to exceed the bounds of the scale
     LED1_time_elapsed = millis() - LED1_dimmerStart;
-    LED1_brightness_on = calculate_LED_brightness_linear(LED1_time_elapsed, LED1_brightness_off, PWM_Steps_LED1,
+    //LED1_brightness_on = LED1_brightness_off + (PWM_Steps_LED1 * LED1_time_elapsed / LED1_on_time);
+   LED1_brightness_on = calculate_LED_brightness_linear(LED1_time_elapsed, LED1_brightness_off, PWM_Steps_LED1,
                          LED1_on_time, HIGH);
     // Switch the flag turning_LED1_on off when the LED has reached full brightness
     if (LED1_brightness_on >= PWM_Steps_LED1) {
@@ -251,9 +262,10 @@ void  Switch_LEDS(unsigned long LED1_dimmerStart, unsigned long LED1_dimmerStop,
   }
   if (turning_LED1_off == HIGH)  {
 
-    LED1_time_elapsed = millis() - LED1_dimmerStop,
-    LED1_brightness_off = calculate_LED_brightness_linear(LED1_time_elapsed, LED1_brightness_on, PWM_Steps_LED1,
-                          LED1_off_time, LOW);
+    LED1_time_elapsed = millis() - LED1_dimmerStop;
+    LED1_brightness_off = LED1_brightness_on - (PWM_Steps_LED1 * LED1_time_elapsed / LED1_off_time);
+  //LED1_brightness_off = calculate_LED_brightness_linear(LED1_time_elapsed, LED1_brightness_on, PWM_Steps_LED1,
+    //                      LED1_off_time, LOW);
 
     if (LED1_brightness_off <= 0) {
       LED1_brightness_off = 0;
@@ -270,8 +282,7 @@ void  Switch_LEDS(unsigned long LED1_dimmerStart, unsigned long LED1_dimmerStop,
 
     LED2_time_elapsed = millis() - LED2_dimmerStart,
     //LED2_brightness_on = LED2_brightness_off + (PWM_Steps_LED2 * LED2_time_elapsed / LED2_on_time);
-    LED2_brightness_on = calculate_LED_brightness_linear(LED2_time_elapsed, LED2_brightness_off, PWM_Steps_LED2,
-                         LED2_on_time, HIGH);
+    LED2_brightness_on = calculate_LED_brightness_linear(LED2_time_elapsed, LED2_brightness_off, PWM_Steps_LED2, LED2_on_time, HIGH);
 
     if (LED2_brightness_on >= PWM_Steps_LED2) {
       LED2_brightness_on = PWM_Steps_LED2;
@@ -285,8 +296,8 @@ void  Switch_LEDS(unsigned long LED1_dimmerStart, unsigned long LED1_dimmerStop,
   if (turning_LED2_off == HIGH)  {
 
     LED2_time_elapsed = millis() - LED2_dimmerStop,
-    LED2_brightness_off = calculate_LED_brightness_linear(LED2_time_elapsed, LED2_brightness_on, PWM_Steps_LED2,
-                          LED2_off_time, LOW);
+    //LED2_brightness_off = LED2_brightness_on - (PWM_Steps_LED2 * LED2_time_elapsed / LED2_off_time);
+     LED2_brightness_off = calculate_LED_brightness_linear(LED2_time_elapsed, LED2_brightness_on, PWM_Steps_LED2, LED2_off_time, LOW);
 
     if (LED2_brightness_off <= 0) {
       LED2_brightness_off = 0;
