@@ -77,6 +77,11 @@ enum states_t {WAIT, MENU_SET_ALARM, MENU_SET_TIME, MENU_SET_EXIT, SET_ALARM, SE
 static states_t STATE;              // current state machine state
 
 int
+LED1_brightness_turning_on = 0, //brightness of LED when turning on
+LED1_brightness_turning_off = 0,//brightness of LED when turning off
+LED2_brightness_turning_on = 0, //brightness of LED when turning on
+LED2_brightness_turning_off = 0, //brightness of LED when turning off
+
 max_brightness_LED1 = 40, //relates to pwm steps below...
 max_brightness_LED2 = 40, //as percent of PWM Steps
 PWM_Steps_LED1 = 0, //relates to pwm steps below...
@@ -86,7 +91,7 @@ PWM_Steps = 32767; //less than
 
 const long
 LED1_on_time = 4000, // time in ms that light takes to turn on
-LED1_off_time = 900, // time in ms that light takes to turn off
+LED1_off_time = 3000, // time in ms that light takes to turn off
 LED2_on_time = 4000, // time in ms that light takes to turn on
 LED2_off_time = 4000; // time in ms that light takes to turn off
 
@@ -95,12 +100,6 @@ turning_LED1_on = LOW,
 turning_LED1_off = LOW,
 turning_LED2_on = LOW,
 turning_LED2_off = LOW;
-
-int
-LED1_brightness_on = 0, //brightness of LED when turning on
-LED1_brightness_off = 0,//brightness of LED when turning off
-LED2_brightness_on = 0, //brightness of LED when turning on
-LED2_brightness_off = 0; //brightness of LED when turning off
 
 // time elapsed since the last time switch was triggered
 unsigned long
@@ -229,7 +228,6 @@ void  Switch_LEDS()
 
   // brightness at the last time the LEDS were in switching on/off
 
-
   // convert maximum brightness from percent to integer
   PWM_Steps_LED1 = (PWM_Steps / 100 * max_brightness_LED1);
   PWM_Steps_LED2 = (PWM_Steps / 100 * max_brightness_LED2);
@@ -239,72 +237,66 @@ void  Switch_LEDS()
 
     // calculate a new value for the brightness of LED1, being careful not to exceed the bounds of the scale
     LED1_time_elapsed = millis() - LED1_dimmerStart;
-    //LED1_brightness_on = LED1_brightness_off + (PWM_Steps_LED1 * LED1_time_elapsed / LED1_on_time);
-    LED1_brightness_on = calculate_LED_brightness_linear(LED1_time_elapsed, LED1_brightness_off, PWM_Steps_LED1,
+    LED1_brightness_turning_on = calculate_LED_brightness_linear(LED1_time_elapsed, LED1_brightness_turning_off, PWM_Steps_LED1,
                          LED1_on_time, HIGH);
     // Switch the flag turning_LED1_on off when the LED has reached full brightness
-    if (LED1_brightness_on >= PWM_Steps_LED1) {
-      LED1_brightness_on = PWM_Steps_LED1;
+    if (LED1_brightness_turning_on >= PWM_Steps_LED1) {
+      LED1_brightness_turning_on = PWM_Steps_LED1;
       turning_LED1_on = LOW;
       Serial.println("turning_LED1_on = LOW");
-      //Serial.println (LED1_brightness_on);
+      //Serial.println (LED1_brightness_turning_on);
     }
 
     // Write the brightness to the pin
-    analogWrite16(LED_PIN1, LED1_brightness_on);
+    analogWrite16(LED_PIN1, LED1_brightness_turning_on);
 
   }
   if (turning_LED1_off == HIGH)  {
 
     LED1_time_elapsed = millis() - LED1_dimmerStop;
-    //  LED1_brightness_off = LED1_brightness_on - (PWM_Steps_LED1 * LED1_time_elapsed / LED1_off_time);
-     LED1_brightness_off = calculate_LED_brightness_linear(LED1_time_elapsed, LED1_brightness_on, PWM_Steps_LED1,
-                         LED1_off_time, LOW);   
-    if (LED1_brightness_off <= 0) {
-      LED1_brightness_off = 0;
+    LED1_brightness_turning_off = calculate_LED_brightness_linear(LED1_time_elapsed, LED1_brightness_turning_on, PWM_Steps_LED1,
+                          LED1_off_time, LOW);
+    if (LED1_brightness_turning_off <= 0) {
+      LED1_brightness_turning_off = 0;
       turning_LED1_off = LOW;
       Serial.println("turning_LED1_off = LOW");
-      //  Serial.println (LED1_brightness_off);
+      //  Serial.println (LED1_brightness_turning_off);
     }
 
-    analogWrite16(LED_PIN1, LED1_brightness_off);
+    analogWrite16(LED_PIN1, LED1_brightness_turning_off);
   }
 
 
   if (turning_LED2_on == HIGH) {
 
     LED2_time_elapsed = millis() - LED2_dimmerStart,
-    //LED2_brightness_on = LED2_brightness_off + (PWM_Steps_LED2 * LED2_time_elapsed / LED2_on_time);
-    LED2_brightness_on = calculate_LED_brightness_linear(LED2_time_elapsed, LED2_brightness_off, PWM_Steps_LED2, LED2_on_time, HIGH);
+    LED2_brightness_turning_on = calculate_LED_brightness_linear(LED2_time_elapsed, LED2_brightness_turning_off, PWM_Steps_LED2, LED2_on_time, HIGH);
 
-    if (LED2_brightness_on >= PWM_Steps_LED2) {
-      LED2_brightness_on = PWM_Steps_LED2;
+    if (LED2_brightness_turning_on >= PWM_Steps_LED2) {
+      LED2_brightness_turning_on = PWM_Steps_LED2;
       turning_LED2_on = LOW;
       Serial.println("turning_LED2_on = LOW");
-      Serial.println (LED2_brightness_on);
+      Serial.println (LED2_brightness_turning_on);
     }
-    analogWrite16(LED_PIN2, LED2_brightness_on);
+    analogWrite16(LED_PIN2, LED2_brightness_turning_on);
   }
 
   if (turning_LED2_off == HIGH)  {
 
     LED2_time_elapsed = millis() - LED2_dimmerStop,
-    //LED2_brightness_off = LED2_brightness_on - (PWM_Steps_LED2 * LED2_time_elapsed / LED2_off_time);
-    LED2_brightness_off = calculate_LED_brightness_linear(LED2_time_elapsed, LED2_brightness_on, PWM_Steps_LED2, LED2_off_time, LOW);
+    LED2_brightness_turning_off = calculate_LED_brightness_linear(LED2_time_elapsed, LED2_brightness_turning_on, PWM_Steps_LED2, LED2_off_time, LOW);
 
-    if (LED2_brightness_off <= 0) {
-      LED2_brightness_off = 0;
+    if (LED2_brightness_turning_off <= 0) {
+      LED2_brightness_turning_off = 0;
       turning_LED2_off = LOW;
       Serial.println("turning_LED2_off = LOW");
-      Serial.println (LED2_brightness_off);
+      Serial.println (LED2_brightness_turning_off);
     }
-    analogWrite16(LED_PIN2, LED2_brightness_off);
+    analogWrite16(LED_PIN2, LED2_brightness_turning_off);
   }
 }
 int calculate_LED_brightness_linear(unsigned long t, int start_brightness, int maximum_brightness,
                                     unsigned long total_time, boolean increasing) {
-  /*int calculate_LED_brightness_linear(unsigned long t, int start_brightness, int maximum_brightness,
-                                      unsigned long total_time, boolean increasing) {*/
   // calculate increasing/decreasing LED brightness according to a linear function
   // inputs:
   //   t - time elapsed
@@ -316,24 +308,12 @@ int calculate_LED_brightness_linear(unsigned long t, int start_brightness, int m
   //   brightness - new integer value of LED brightness
 
   int brightness = 0;
-/*
-  // sign should be +1 if brightness is increasing and -1 otherwise
-  int sign = -1;
-  if (increasing) {
-    sign = 1;
-  }
-  brightness = start_brightness + sign * maximum_brightness * t / total_time;
-  */
-
-if (increasing == HIGH) 
+  if (increasing == HIGH)
     brightness = start_brightness + maximum_brightness * t / total_time;
 
-    else if (increasing == LOW)
+  else if (increasing == LOW)
     brightness = start_brightness - maximum_brightness * t / total_time;
-
-  
-  // Serial.print("brightness = ");
-  // Serial.println (brightness);
+    
   return brightness;
 }
 
@@ -369,259 +349,10 @@ void analogWrite16(uint8_t pin, uint16_t val) //
   }
   Serial.print ("OCR1A = ");
   Serial.print (OCR1A);
-  Serial.print (" : LED1_brightness_on = ");
-  Serial.print (LED1_brightness_on);
-  Serial.print (" : LED1_brightness_off = ");
-  Serial.println (LED1_brightness_off);
+  Serial.print (" : LED1_brightness_turning_on = ");
+  Serial.print (LED1_brightness_turning_on);
+  Serial.print (" : LED1_brightness_turning_off = ");
+  Serial.println (LED1_brightness_turning_off);
 }
 
-void OLEDprintTime()
-{
 
-  oled.print("Time  : ");
-  oled.print(String(rtc.hour()) + ":"); // Print hour
-  if (rtc.minute() < 10)
-    oled.print('0'); // Print leading '0' for minute
-  oled.print(String(rtc.minute()) + ":"); // Print minute
-
-  if (rtc.second() < 10)
-    oled.print('0'); // Print leading '0' for second
-  // oled.setInvertMode (true);
-  oled.println(String(rtc.second())); // Print second
-}
-void OLEDprintAlarm()
-{
-  oled.set1X();
-  oled.print("Alarm : ");
-  oled.print(String(alarmhour) + ":"); // Print hour
-  if (alarmminute < 10)
-    oled.print('0'); // Print leading '0' for second
-  oled.print(String(alarmminute) + ":"); // Print min
-  if (alarmsecond < 10)
-    oled.print('0'); // Print leading '0' for second
-
-  oled.println(String(alarmsecond)); // Print sec
-}
-void LCDprintButtonState()
-{
-  //  oled.print(bool(led1State) + ":"); //
-
-}
-
-void printTime() //Over serial
-{
-  Serial.print ("time = ");
-  Serial.print(String(rtc.hour()) + ":"); // Print hour
-  if (rtc.minute() < 10)
-    Serial.print('0'); // Print leading '0' for minute
-  Serial.print(String(rtc.minute()) + ":"); // Print minute
-  if (rtc.second() < 10)
-    Serial.print('0'); // Print leading '0' for second
-  Serial.print(String(rtc.second())); // Print second
-
-  if (rtc.is12Hour()) // If we're in 12-hour mode
-  {
-    // Use rtc.pm() to read the AM/PM state of the hour
-    if (rtc.pm()) Serial.print(" PM"); // Returns true if PM
-    else Serial.print(" AM");
-  }
-
-  Serial.print(" | ");
-
-  // Few options for printing the day, pick one:
-  Serial.print(rtc.dayStr()); // Print day string
-  //Serial.print(rtc.dayC()); // Print day character
-  //Serial.print(rtc.day()); // Print day integer (1-7, Sun-Sat)
-  Serial.print(" - ");
-
-  Serial.print(String(rtc.date()) + "/" +    // (or) print date
-               String(rtc.month()) + "/"); // Print month
-
-  Serial.println(String(rtc.year()));        // Print year
-}
-
-void Update_Display()
-{ if (printoled == HIGH)      // something has changed and its time to update screen
-  {
-    printoled = !printoled;
-    oled.setInvertMode (false);
-    oled.setFont(X11fixed7x14);
-    oled.set1X();
-    oled.setCursor(0, 0);
-    //oled.print ("state = ");
-    //oled.println (STATE);
-    //line One
-    if ((STATE == 0) && (Alarm_on_or_off == HIGH))
-      oled.println("Alarm On       ");
-
-    else if ((STATE == 0) && (Alarm_on_or_off == LOW))
-      oled.println("Alarm Off       ");
-
-    else if (STATE == 1)
-      oled.println("Set Alarm      ");
-    else if (STATE == 2)
-      oled.println("Set Time       ");
-    else if (STATE == 3)
-      oled.println("Exit           ");
-    else if (STATE == 4)
-      oled.println("Setting Alarm  ");
-    else if (STATE == 5)
-      oled.println("Setting Time   ");
-    else if (STATE == 6)
-      oled.println("Setting Alarm  ");
-    else if (STATE == 7)
-      oled.println("Setting Alarm  ");
-
-    OLEDprintTime (); //print to LCD
-    OLEDprintAlarm();
-    //line four
-    if (STATE == 0)
-      oled.println("Menu    On     Off");
-
-    else if (STATE == 1)
-      oled.println("Enter  Prev   Next");
-    else if (STATE == 2)
-      oled.println("Enter  Prev   Next");
-    else if (STATE == 3)
-      oled.println("Enter  Prev   Next");
-    else if (STATE == 4)
-      oled.println("Exit   Plus  Minus");
-    else if (STATE == 5)
-      oled.println("Exit   Plus  Minus");
-    else if (STATE == 6)
-      oled.println("Exit   Plus  Minus");
-    else if (STATE == 7)
-      oled.println("Exit   Plus  Minus");
-  }
-}
-
-void State_machine() {
-  switch (STATE)
-  {
-    case WAIT:                              // case 0 wait for a button event
-      //           strcpy(linefour, "Menu");
-      if (myBtn1.wasPressed())
-        STATE = MENU_SET_ALARM,
-        printoled = !printoled;
-      else if (myBtn2.wasPressed())
-        Alarm_on_or_off = HIGH,
-        printoled = !printoled;
-      else if (myBtn3.wasPressed())
-        Alarm_on_or_off = LOW,
-        printoled = !printoled;      // something changed tell the screen to update
-      break;
-
-    case MENU_SET_ALARM:                //case 1
-      //          strcpy(lineone, "Set Alarm");
-      if (myBtn1.wasPressed())
-        STATE = SET_ALARM,
-        printoled = !printoled;
-      else if (myBtn2.wasPressed())
-        STATE = MENU_SET_EXIT,
-        printoled = !printoled;
-      else if (myBtn3.wasPressed())
-        STATE = MENU_SET_TIME ,
-        printoled = !printoled;
-      break;
-
-    case MENU_SET_TIME:               // case 2
-      //        using alarm code here for now
-      if (myBtn1.wasPressed())
-        STATE = SET_TIME,
-        printoled = !printoled;
-      else if (myBtn2.wasPressed())
-        STATE = MENU_SET_ALARM,
-        printoled = !printoled;
-      else if (myBtn3.wasPressed())
-        STATE = MENU_SET_EXIT,
-        printoled = !printoled;
-      break;
-
-    case MENU_SET_EXIT:             // case 3
-      //        using alarm code here for now
-      if (myBtn1.wasPressed())
-        STATE = WAIT,
-        printoled = !printoled;
-      else if (myBtn2.wasPressed())
-        STATE = MENU_SET_TIME,
-        printoled = !printoled;
-      else if (myBtn3.wasPressed())
-        STATE = MENU_SET_ALARM,
-        printoled = !printoled;
-      break;
-
-
-    case SET_ALARM:             // case 4
-      if (myBtn1.wasPressed())
-        STATE = WAIT,
-        printoled = !printoled;
-      else if (myBtn2.wasPressed())
-        STATE = INCR;
-      else if (myBtn3.wasPressed())
-        STATE = DECR;
-      else if (myBtn2.wasReleased())       // reset the long press interval
-        rpt = REPEAT_FIRST,
-        SPEED1 = LOW;
-      else if (myBtn3.wasReleased())
-        rpt = REPEAT_FIRST,
-        SPEED1 = LOW;
-
-      else if (myBtn2.pressedFor(rpt))     // check for long press
-      {
-        if (SPEED1 == HIGH) {
-          rpt += REPEAT_INCR_FAST;
-        }
-        else {
-          rpt += REPEAT_INCR;            // increment the long press interval
-        }
-        STATE = INCR;
-        if (rpt > FAST_THRESHOLD) {
-          SPEED1 = HIGH;
-        }
-      }
-
-      else if (myBtn3.pressedFor(rpt))
-      {
-        if (SPEED1 == HIGH) {
-          rpt += REPEAT_INCR_FAST;             // increment the long press interval
-        }
-        else {
-          rpt += REPEAT_INCR;
-        }
-        STATE = DECR;
-        if (rpt > FAST_THRESHOLD) {
-          SPEED1 = HIGH;
-        }
-      }
-      break;
-
-
-
-    case SET_TIME:             // case 5
-      if (myBtn1.wasPressed())
-        STATE = WAIT,
-        printoled = !printoled;
-
-      break;
-
-    case INCR:  // case 6
-      alarmsecond++;    // increment the counter
-      if (alarmsecond > 59) {  // but not more than the specified maximum
-        alarmminute++;
-        alarmsecond = 0;
-      }
-      printoled = !printoled;
-      STATE = SET_ALARM;
-      break;
-
-    case DECR:   // case 7
-      alarmsecond--;  // decrement the counter
-      if (alarmsecond < 0) {  // but not less than the specified minimum
-        alarmminute--;
-        alarmsecond = 59;
-      }
-      printoled = !printoled;
-      STATE = SET_ALARM;
-      break;
-  }
-}
