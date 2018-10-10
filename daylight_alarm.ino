@@ -82,32 +82,32 @@ LED1_brightness_turning_off = 0,//brightness of LED when turning off
 LED2_brightness_turning_on = 0, //brightness of LED when turning on
 LED2_brightness_turning_off = 0, //brightness of LED when turning off
 
-max_brightness_LED1 = 40, //relates to pwm steps below...
-max_brightness_LED2 = 40, //as percent of PWM Steps
-PWM_Steps_LED1 = 0, //relates to pwm steps below...
+max_brightness_LED1 = 40, // out of 100 relates to pwm steps below...
+max_brightness_LED2 = 40, // out of 100 relates to pwm steps below...
+PWM_Steps_LED1 = 0, //  PWM_Steps/100 * max_brightness_LED1
 PWM_Steps_LED2 = 0, //as percent of PWM Steps
 //PWM_Steps = 65535; //sent to ICR1 register max value 0xffff or 65535. higher the value the slower the refresh rate
-PWM_Steps = 32767; //less than
+PWM_Steps = 32767; // less than 32,767 otherwise code wraps around and breaks
 
 const long
-LED1_on_time = 4000, // time in ms that light takes to turn on
-LED1_off_time = 3000, // time in ms that light takes to turn off
-LED2_on_time = 4000, // time in ms that light takes to turn on
-LED2_off_time = 4000; // time in ms that light takes to turn off
+LED1_turn_on_time = 4000, // time in ms that light takes to turn on
+LED1_turn_off_time = 3000, // time in ms that light takes to turn off
+LED2_turn_on_time  = 4000, // time in ms that light takes to turn on
+LED2_turn_off_time  = 4000; // time in ms that light takes to turn off
 
 static bool
-turning_LED1_on = LOW,
+turning_LED1_on = LOW, // records for turning led on from button press or other
 turning_LED1_off = LOW,
 turning_LED2_on = LOW,
 turning_LED2_off = LOW;
 
 // time elapsed since the last time switch was triggered
 unsigned long
-LED1_dimmerStart = 0L, //time in millis when the button is pressed
-LED1_dimmerStop = 0L, //time in millis when the button is released
-LED2_dimmerStart = 0L, //time in millis when the button is pressed
-LED2_dimmerStop = 0L, //time in millis when the button is released
-LED1_time_elapsed = 0L,
+LED1_millis_at_turn_on = 0L, //time in millis when the button is pressed
+LED1_millis_at_turn_off = 0L, //time in millis when the button is released
+LED2_millis_at_turn_on = 0L, //time in millis when the button is pressed
+LED2_millis_at_turn_off = 0L, //time in millis when the button is released
+LED1_time_elapsed = 0L,  //
 LED2_time_elapsed = 0L;
 
 
@@ -176,28 +176,26 @@ void loop()
     Serial.println ("button 5 released");
 
   if (myBtn6.wasPressed())
-    LED1_dimmerStart = millis(),
+    LED1_millis_at_turn_on = millis(),
     turning_LED1_on = HIGH,
     turning_LED1_off = LOW,
-    LED2_dimmerStart = millis(),
+    LED2_millis_at_turn_on = millis(),
     turning_LED2_on = HIGH,
     turning_LED2_off = LOW,
 
     Serial.println ("button 6 pressed");
 
   if (myBtn6.wasReleased())
-    LED1_dimmerStop = millis(),
+    LED1_millis_at_turn_off = millis(),
     turning_LED1_off = HIGH,
     turning_LED1_on = LOW,
-    LED2_dimmerStop = millis(),
+    LED2_millis_at_turn_off = millis(),
     turning_LED2_off = HIGH,
     turning_LED2_on = LOW,
 
     Serial.println ("button 6 released");
 
-
-  //Switch_LEDS(LED1_dimmerStart, LED1_dimmerStop, LED2_dimmerStart, LED2_dimmerStop);
-  Switch_LEDS();
+  Switch_LEDS_on_or_off();
   Update_Display();
   State_machine();
 
@@ -214,125 +212,6 @@ void loop()
 
 }
 //End of loop
-
-//void  Switch_LEDS(unsigned long LED1_dimmerStart, unsigned long LED1_dimmerStop, unsigned long LED2_dimmerStart, unsigned long LED2_dimmerStop)
-void  Switch_LEDS()
-
-{
-  // turn leds on and off
-  // inputs:
-  // LED1_dimmerStart - time at the last time switch was triggered for LED1 to turn on
-  // LED1_dimmerStop - time at the last time switch was triggered for LED1 to turn off
-  // LED2_dimmerStart - time at the last time switch was triggered for LED2 to turn on
-  // LED2_dimmerStop - time at the last time switch was triggered for LED2 to turn off
-
-  // brightness at the last time the LEDS were in switching on/off
-
-  // convert maximum brightness from percent to integer
-  PWM_Steps_LED1 = (PWM_Steps / 100 * max_brightness_LED1);
-  PWM_Steps_LED2 = (PWM_Steps / 100 * max_brightness_LED2);
-
-  // if the turning_LED1_on flag is HIGH, recalculate the brightness of LED1
-  if (turning_LED1_on == HIGH) {
-
-    // calculate a new value for the brightness of LED1, being careful not to exceed the bounds of the scale
-    LED1_time_elapsed = millis() - LED1_dimmerStart;
-    LED1_brightness_turning_on = calculate_LED_brightness_linear(LED1_time_elapsed, LED1_brightness_turning_off, PWM_Steps_LED1,
-                         LED1_on_time, HIGH);
-    // Switch the flag turning_LED1_on off when the LED has reached full brightness
-    if (LED1_brightness_turning_on >= PWM_Steps_LED1) {
-      LED1_brightness_turning_on = PWM_Steps_LED1;
-      turning_LED1_on = LOW;
-      Serial.println("turning_LED1_on = LOW");
-      //Serial.println (LED1_brightness_turning_on);
-    }
-
-    // Write the brightness to the pin
-    analogWrite16(LED_PIN1, LED1_brightness_turning_on);
-
-  }
-  if (turning_LED1_off == HIGH)  {
-
-    LED1_time_elapsed = millis() - LED1_dimmerStop;
-    LED1_brightness_turning_off = calculate_LED_brightness_linear(LED1_time_elapsed, LED1_brightness_turning_on, PWM_Steps_LED1,
-                          LED1_off_time, LOW);
-    if (LED1_brightness_turning_off <= 0) {
-      LED1_brightness_turning_off = 0;
-      turning_LED1_off = LOW;
-      Serial.println("turning_LED1_off = LOW");
-      //  Serial.println (LED1_brightness_turning_off);
-    }
-
-    analogWrite16(LED_PIN1, LED1_brightness_turning_off);
-  }
-
-
-  if (turning_LED2_on == HIGH) {
-
-    LED2_time_elapsed = millis() - LED2_dimmerStart,
-    LED2_brightness_turning_on = calculate_LED_brightness_linear(LED2_time_elapsed, LED2_brightness_turning_off, PWM_Steps_LED2, LED2_on_time, HIGH);
-
-    if (LED2_brightness_turning_on >= PWM_Steps_LED2) {
-      LED2_brightness_turning_on = PWM_Steps_LED2;
-      turning_LED2_on = LOW;
-      Serial.println("turning_LED2_on = LOW");
-      Serial.println (LED2_brightness_turning_on);
-    }
-    analogWrite16(LED_PIN2, LED2_brightness_turning_on);
-  }
-
-  if (turning_LED2_off == HIGH)  {
-
-    LED2_time_elapsed = millis() - LED2_dimmerStop,
-    LED2_brightness_turning_off = calculate_LED_brightness_linear(LED2_time_elapsed, LED2_brightness_turning_on, PWM_Steps_LED2, LED2_off_time, LOW);
-
-    if (LED2_brightness_turning_off <= 0) {
-      LED2_brightness_turning_off = 0;
-      turning_LED2_off = LOW;
-      Serial.println("turning_LED2_off = LOW");
-      Serial.println (LED2_brightness_turning_off);
-    }
-    analogWrite16(LED_PIN2, LED2_brightness_turning_off);
-  }
-}
-int calculate_LED_brightness_linear(unsigned long t, int start_brightness, int maximum_brightness,
-                                    unsigned long total_time, boolean increasing) {
-  // calculate increasing/decreasing LED brightness according to a linear function
-  // inputs:
-  //   t - time elapsed
-  //   start_brightness - LED brightness at time t=0
-  //   maximum_brightness - maximum allowed LED brightness
-  //   total_time - time taken for LED brightness to go from 0 to maximum_brightness
-  //   increasing - HIGH if LED brightness is increasing, LOW otherwise
-  // returns:
-  //   brightness - new integer value of LED brightness
-
-  int brightness = 0;
-  if (increasing == HIGH)
-    brightness = start_brightness + maximum_brightness * t / total_time;
-
-  else if (increasing == LOW)
-    brightness = start_brightness - maximum_brightness * t / total_time;
-    
-  return brightness;
-}
-
-int calculate_LED_brightness_linear_down(unsigned long t, int start_brightness, int maximum_brightness,
-    unsigned long total_time, boolean increasing) {
-  int brightness = 0;
-
-  // sign should be +1 if brightness is increasing and -1 otherwise
-  int sign = -1;
-  if (increasing) {
-    sign = 1;
-  }
-
-  brightness = start_brightness - maximum_brightness * t / total_time;
-  // Serial.print("brightness = ");
-  // Serial.println (brightness);
-  return brightness;
-}
-
 
 void setupPWM16() {
   TCCR1A = bit (WGM11) | bit (COM1B1) | bit (COM1A1); // fast PWM, TOP = ICR1, Enable OCR1A and OCR1B as outputs clear on compare
