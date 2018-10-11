@@ -76,12 +76,11 @@ int calculate_LED_brightness_linear(unsigned long t, int start_brightness, int m
   //   increasing - HIGH if LED brightness is increasing, LOW otherwise
   // returns:
   //   brightness - new integer value of LED brightness
-
-  int brightness = 0;
-  if (increasing == HIGH)
+    int brightness = 0;
+  if (increasing)
     brightness = start_brightness + maximum_brightness * t / total_time;
 
-  else if (increasing == LOW)
+  else
     brightness = start_brightness - maximum_brightness * t / total_time;
 
   return brightness;
