@@ -1,26 +1,5 @@
 void  Switch_LEDS_on_or_off() {
-  
-    if (myBtn6.wasPressed())
-    LED1_millis_at_turn_on = millis(),
-    turning_LED1_on = HIGH,
-    turning_LED1_off = LOW,
-    LED2_millis_at_turn_on = millis(),
-    turning_LED2_on = HIGH,
-    turning_LED2_off = LOW,
-
-    Serial.println ("button 6 pressed");
-
-  if (myBtn6.wasReleased())
-    LED1_millis_at_turn_off = millis(),
-    turning_LED1_off = HIGH,
-    turning_LED1_on = LOW,
-    LED2_millis_at_turn_off = millis(),
-    turning_LED2_off = HIGH,
-    turning_LED2_on = LOW,
-
-    Serial.println ("button 6 released");
-
-  // convert maximum brightness from percent to integer
+    // convert maximum brightness from percent to integer
   PWM_Steps_LED1 = (PWM_Steps / 100 * max_brightness_LED1);
   PWM_Steps_LED2 = (PWM_Steps / 100 * max_brightness_LED2);
 

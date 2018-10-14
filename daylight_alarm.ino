@@ -15,7 +15,7 @@
 #include <SparkFunDS3234RTC.h>
 #include <Wire.h> //display
 #include <JC_Button.h>
-#include <assert.h> // something to do with testing
+//#include <assert.h> // something to do with testing
 
 #include "SSD1306Ascii.h"
 #include "SSD1306AsciiAvrI2c.h"
@@ -59,29 +59,30 @@ const unsigned long REPEAT_FIRST(500),          // ms required before repeating 
 static bool
 printoled = LOW,            // flag to update screen
 SPEED1 = LOW,                // for speeding up the counter after the button is pressed for a long time
-Alarm_on_or_off = LOW;        //starting point for alarm state
+Alarm_on_or_off = LOW,        //starting point for alarm state
+alarm_is_on = LOW;
 
 
 
 // set alarm values - probably dont need seconds, month or year setting week day would be nice
 // Set to 20:30 Sunday September 2, 2018:
 static signed char           // type int8_t, range -128 to 127
-  alarm_hour = 20,
-  alarm_minute = 30,
-  alarm_day = 1,               // day: Sunday=1, Monday=2, ..., Saturday=7
-  alarm_date = 2,
-  alarm_month = 9,
-  alarm_year = 18;
+alarm_hour = 00,
+alarm_minute = 4,
+alarm_day = 1,               // day: Sunday=1, Monday=2, ..., Saturday=7
+alarm_date = 2,
+alarm_month = 9,
+alarm_year = 18;
 
 // set time values (used when setting the clock)
 // Set to 00:00 Sunday September 2, 2018:
 static signed char           // type int8_t, range -128 to 127
-  set_time_hour = 0,
-  set_time_minute = 0,
-  set_time_day = 1,               // day: Sunday=1, Monday=2, ..., Saturday=7
-  set_time_date = 2,
-  set_time_month = 9,
-  set_time_year = 18;
+set_time_hour = 0,
+set_time_minute = 0,
+set_time_day = 1,               // day: Sunday=1, Monday=2, ..., Saturday=7
+set_time_date = 2,
+set_time_month = 9,
+set_time_year = 18;
 
 // days of the week
 const String days[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
@@ -96,12 +97,12 @@ enum states_t {HOME = 0, MENU_SET_ALARM, MENU_SET_TIME, SET_ALARM, SAVE_ALARM, S
 static states_t STATE = HOME;
 
 // modes for setting the time and alarm time
-enum clock_modes {SET_DAY=1, SET_DATE, SET_MONTH, SET_YEAR, SET_HOUR, SET_MINUTE};
+enum clock_modes {SET_DAY = 1, SET_DATE, SET_MONTH, SET_YEAR, SET_HOUR, SET_MINUTE};
 const unsigned char num_clock_modes = 6;
 static unsigned char clock_mode = 1;
 
 // modes for the alarm
-enum alarm_modes {DAILY=1, WEEKDAYS, ONCE};
+enum alarm_modes {DAILY = 1, WEEKDAYS, ONCE};
 const unsigned char num_alarm_modes = 3;
 static unsigned char alarm_mode = 1;
 
@@ -118,23 +119,39 @@ LED1_brightness_turning_off = 0,//brightness of LED when turning off
 LED2_brightness_turning_on = 0, //brightness of LED when turning on
 LED2_brightness_turning_off = 0, //brightness of LED when turning off
 
+LED1_alarm_brightness_turning_on = 0, //brightness of LED when turning on
+LED1_alarm_brightness_turning_off = 0,//brightness of LED when turning off
+LED2_alarm_brightness_turning_on = 0, //brightness of LED when turning on
+LED2_alarm_brightness_turning_off = 0, //brightness of LED when turning off
+
 max_brightness_LED1 = 100, // out of 100 relates to pwm steps below...
 max_brightness_LED2 = 100, // out of 100 relates to pwm steps below...
 PWM_Steps_LED1 = 0, //  PWM_Steps/100 * max_brightness_LED1
 PWM_Steps_LED2 = 0, //as percent of PWM Steps
 PWM_Steps = 32767; //sent to ICR1 register. less than 32,767 otherwise code wraps around and breaks
 //PWM_Steps = 65535; // max value 0xffff or 65535. higher the value the slower the refresh rate
-const long
+
+long
 LED1_turn_on_time = 4000, // time in ms that light takes to turn on
 LED1_turn_off_time = 3000, // time in ms that light takes to turn off
 LED2_turn_on_time  = 4000, // time in ms that light takes to turn on
-LED2_turn_off_time  = 4000; // time in ms that light takes to turn off
+LED2_turn_off_time  = 4000, // time in ms that light takes to turn off
+
+LED1_alarm_turn_on_time = 8000, // time in ms that light takes to turn on
+LED1_alarm_turn_off_time = 3000, // time in ms that light takes to turn off
+LED2_alarm_turn_on_time  = 8000, // time in ms that light takes to turn on
+LED2_alarm_turn_off_time  = 4000; // time in ms that light takes to turn off
 
 static bool
 turning_LED1_on = LOW, // records for turning led on from button press or other
 turning_LED1_off = LOW,
 turning_LED2_on = LOW,
-turning_LED2_off = LOW;
+turning_LED2_off = LOW,
+
+turning_alarm_LED1_on = LOW, // records for turning led on from button press or other
+turning_alarm_LED1_off = LOW,
+turning_alarm_LED2_on = LOW,
+turning_alarm_LED2_off = LOW;
 
 // time elapsed since the last time switch was triggered
 unsigned long
@@ -142,7 +159,7 @@ LED1_millis_at_turn_on = 0L, //time in millis when the button is pressed
 LED1_millis_at_turn_off = 0L, //time in millis when the button is released
 LED2_millis_at_turn_on = 0L, //time in millis when the button is pressed
 LED2_millis_at_turn_off = 0L, //time in millis when the button is released
-LED1_time_elapsed = 0L,  //
+LED1_time_elapsed = 0L,  // time spent turning on or off
 LED2_time_elapsed = 0L;
 
 
@@ -180,9 +197,22 @@ void setup()
   analogWrite16(LED_PIN1, 0);  // should start it as off
   analogWrite16(LED_PIN2, 0);
 
+  // check if the alarm on or LED on switch is pressed at start-up
+  myBtn5.read(); // to enable the alarm
+  if (myBtn5.isPressed()) //start up check of switch
+    Alarm_on_or_off = HIGH,
+    Serial.println ("button 5 pressed at start-up");
+
+  myBtn6.read(); // turns LED on as light
+  if (myBtn6.isPressed())
+    LED1_millis_at_turn_on = millis(),
+    turning_LED1_on = HIGH,
+    turning_LED1_off = LOW,
+    LED2_millis_at_turn_on = millis(),
+    turning_LED2_on = HIGH,
+    turning_LED2_off = LOW,
+    Serial.println ("button 6 pressed at start-up");
 } // end of setup
-
-
 void loop()
 {
   // read the buttons
@@ -200,8 +230,8 @@ void loop()
   else if (myBtn4.wasReleased())
     oled.ssd1306WriteCmd(SSD1306_DISPLAYON),
                          Serial.println ("button 4 released");
-                         
-                         //
+
+  //
 
   if (myBtn5.wasPressed())
     Alarm_on_or_off = HIGH,
@@ -211,6 +241,27 @@ void loop()
     printoled = !printoled,
     Alarm_on_or_off = LOW,
     Serial.println ("button 5 released");
+
+  if (myBtn6.wasPressed())
+    LED1_millis_at_turn_on = millis(),
+    turning_LED1_on = HIGH,
+    turning_LED1_off = LOW,
+    LED2_millis_at_turn_on = millis(),
+    turning_LED2_on = HIGH,
+    turning_LED2_off = LOW,
+
+    Serial.println ("button 6 pressed");
+
+  if (myBtn6.wasReleased())
+    LED1_millis_at_turn_off = millis(),
+    turning_LED1_off = HIGH,
+    turning_LED1_on = LOW,
+    LED2_millis_at_turn_off = millis(),
+    turning_LED2_off = HIGH,
+    turning_LED2_on = LOW,
+
+    Serial.println ("button 6 released");
+  Switch_LEDS_on_or_off(); // uses button 6
 
 
   // Call rtc.update() to update all rtc.seconds(), rtc.minutes(),
@@ -227,11 +278,40 @@ void loop()
     printTime(); // Print the new time to serial
   }
 
-  Switch_LEDS_on_or_off(); // uses button 6
+
   Update_Display();
   Menu_State_Machine ();
+  check_alarm_time ();
+  Switch_LEDS_alarm_on_or_off(); // uses button 6
 }
 //End of loop
+
+void check_alarm_time () {
+  if (alarm_is_on == LOW && Alarm_on_or_off == HIGH)
+  {
+    if (rtc.hour() == alarm_hour && rtc.minute() == alarm_minute)
+    {
+      alarm_is_on = HIGH,
+      LED1_millis_at_turn_on = millis(),
+      turning_alarm_LED1_on = HIGH,
+      turning_alarm_LED1_off = LOW,
+      LED2_millis_at_turn_on = millis(),
+      turning_alarm_LED2_on = HIGH,
+      turning_alarm_LED2_off = LOW;
+
+      Serial.println ("alarm met leds should be on");
+
+    }
+    /*
+      alarm_hour = 20,
+      alarm_minute = 30,
+      alarm_day = 1,               // day: Sunday=1, Monday=2, ..., Saturday=7
+      alarm_date = 2,
+      alarm_month = 9,
+      alarm_year = 18;
+    */
+  }
+}
 
 void setupPWM16() {
   TCCR1A = bit (WGM11) | bit (COM1B1) | bit (COM1A1); // fast PWM, TOP = ICR1, Enable OCR1A and OCR1B as outputs clear on compare
