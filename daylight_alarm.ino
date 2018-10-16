@@ -68,7 +68,7 @@ alarm_is_on = LOW;
 // Set to 20:30 Sunday September 2, 2018:
 static signed char           // type int8_t, range -128 to 127
 alarm_hour = 00,
-alarm_minute = 4,
+alarm_minute = 34,
 alarm_day = 1,               // day: Sunday=1, Monday=2, ..., Saturday=7
 alarm_date = 2,
 alarm_month = 9,
@@ -137,7 +137,7 @@ LED1_turn_off_time = 3000, // time in ms that light takes to turn off
 LED2_turn_on_time  = 4000, // time in ms that light takes to turn on
 LED2_turn_off_time  = 4000, // time in ms that light takes to turn off
 
-LED1_alarm_turn_on_time = 8000, // time in ms that light takes to turn on
+LED1_alarm_turn_on_time = 100000, // time in ms that light takes to turn on
 LED1_alarm_turn_off_time = 3000, // time in ms that light takes to turn off
 LED2_alarm_turn_on_time  = 8000, // time in ms that light takes to turn on
 LED2_alarm_turn_off_time  = 4000; // time in ms that light takes to turn off
@@ -237,9 +237,20 @@ void loop()
     Alarm_on_or_off = HIGH,
     printoled = !printoled,
     Serial.println ("button 5 pressed");
+
   else if (myBtn5.wasReleased())
     printoled = !printoled,
     Alarm_on_or_off = LOW,
+
+    //alarm_is_on = HIGH,
+    LED1_millis_at_turn_on = millis(),
+    turning_alarm_LED1_on = LOW,
+    turning_alarm_LED1_off = HIGH,
+    LED2_millis_at_turn_on = millis(),
+    turning_alarm_LED2_on = LOW,
+    turning_alarm_LED2_off = HIGH,
+
+    print_all_data (),
     Serial.println ("button 5 released");
 
   if (myBtn6.wasPressed())
@@ -254,14 +265,15 @@ void loop()
 
   if (myBtn6.wasReleased())
     LED1_millis_at_turn_off = millis(),
-    turning_LED1_off = HIGH,
     turning_LED1_on = LOW,
+    turning_LED1_off = HIGH,
     LED2_millis_at_turn_off = millis(),
-    turning_LED2_off = HIGH,
     turning_LED2_on = LOW,
+    turning_LED2_off = HIGH,
+
 
     Serial.println ("button 6 released");
-  Switch_LEDS_on_or_off(); // uses button 6
+
 
 
   // Call rtc.update() to update all rtc.seconds(), rtc.minutes(),
@@ -272,9 +284,11 @@ void loop()
   {
     lastSecond = rtc.second(); // Update lastSecond value
     printoled = HIGH;
-    Serial.print ("state = ");
-    Serial.print (STATE);
-    Serial.print (" ");
+    /*Serial.print ("state = ");
+      Serial.print (STATE);
+      Serial.print (" ");
+    */
+    print_all_data ();
     printTime(); // Print the new time to serial
   }
 
@@ -282,9 +296,35 @@ void loop()
   Update_Display();
   Menu_State_Machine ();
   check_alarm_time ();
+  Switch_LEDS_on_or_off(); // uses button 6
   Switch_LEDS_alarm_on_or_off(); // uses button 6
 }
 //End of loop
+void print_all_data () {
+  Serial.print ("OCR1A = ");
+  Serial.print (OCR1A);
+  Serial.print (" : LED1_brightness_turning_on = ");
+  Serial.print (LED1_brightness_turning_on);
+  Serial.print (" : LED1_brightness_turning_off = ");
+  Serial.print (LED1_brightness_turning_off);
+  Serial.print (" : LED1_alarm_brightness_turning_on = ");
+  Serial.print (LED1_alarm_brightness_turning_on);
+  Serial.print (" : LED1_alarm_brightness_turning_off = ");
+  Serial.println (LED1_alarm_brightness_turning_off);
+
+  Serial.print ("OCR1B = ");
+  Serial.print (OCR1B);
+  Serial.print (" : LED2_brightness_turning_on = ");
+  Serial.print (LED2_brightness_turning_on);
+  Serial.print (" : LED2_brightness_turning_off = ");
+  Serial.print (LED2_brightness_turning_off);
+  Serial.print (" : LED2_alarm_brightness_turning_on = ");
+  Serial.print (LED2_alarm_brightness_turning_on);
+  Serial.print (" : LED2_alarm_brightness_turning_off = ");
+  Serial.println (LED2_alarm_brightness_turning_off);
+
+}
+
 
 void check_alarm_time () {
   if (alarm_is_on == LOW && Alarm_on_or_off == HIGH)
@@ -326,12 +366,14 @@ void analogWrite16(uint8_t pin, uint16_t val) //
     case  LED_PIN2: OCR1B = val; break;
 
   }
-  Serial.print ("OCR1A = ");
-  Serial.print (OCR1A);
-  Serial.print (" : LED1_brightness_turning_on = ");
-  Serial.print (LED1_brightness_turning_on);
-  Serial.print (" : LED1_brightness_turning_off = ");
-  Serial.println (LED1_brightness_turning_off);
+  /*
+    Serial.print ("OCR1A = ");
+    Serial.print (OCR1A);
+    Serial.print (" : LED1_brightness_turning_on = ");
+    Serial.print (LED1_brightness_turning_on);
+    Serial.print (" : LED1_brightness_turning_off = ");
+    Serial.println (LED1_brightness_turning_off);
+  */
 }
 
 

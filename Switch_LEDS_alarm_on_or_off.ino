@@ -15,7 +15,7 @@ void  Switch_LEDS_alarm_on_or_off() {
     if (LED1_alarm_brightness_turning_on >= PWM_Steps_LED1) {
       LED1_alarm_brightness_turning_on = PWM_Steps_LED1;
       turning_alarm_LED1_on = LOW;
-      Serial.println("turning_LED1_on = LOW");
+      Serial.println("turning_LED1_alarm_on = LOW");
       //Serial.println (LED1_brightness_turning_on);
     }
 
@@ -31,7 +31,7 @@ void  Switch_LEDS_alarm_on_or_off() {
     if (LED1_alarm_brightness_turning_off <= 0) {
       LED1_alarm_brightness_turning_off = 0;
       turning_alarm_LED1_off = LOW;
-      Serial.println("turning_LED1_off = LOW");
+      Serial.println("turning_LED1_alarm_off = LOW");
       //  Serial.println (LED1_brightness_turning_off);
     }
 
@@ -47,7 +47,7 @@ void  Switch_LEDS_alarm_on_or_off() {
     if (LED2_alarm_brightness_turning_on >= PWM_Steps_LED2) {
       LED2_alarm_brightness_turning_on = PWM_Steps_LED2;
       turning_alarm_LED2_on = LOW;
-      Serial.println("turning_LED2_on = LOW");
+      Serial.println("turning_LED2_alarm_on = LOW");
       Serial.println (LED2_brightness_turning_on);
     }
     analogWrite16(LED_PIN2, LED2_alarm_brightness_turning_on);
@@ -62,7 +62,7 @@ void  Switch_LEDS_alarm_on_or_off() {
     if (LED2_alarm_brightness_turning_off <= 0) {
       LED2_alarm_brightness_turning_off = 0;
       turning_alarm_LED2_off = LOW;
-      Serial.println("turning_LED2_off = LOW");
+      Serial.println("turning_LED2_alarm_off = LOW");
       Serial.println (LED2_brightness_turning_off);
     }
     analogWrite16(LED_PIN2, LED2_alarm_brightness_turning_off);
