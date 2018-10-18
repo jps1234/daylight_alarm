@@ -57,13 +57,13 @@ void OLEDprintAlarm(bool highlightHour, bool highlightMin)
   oled.print("Alarm : ");
 
   oled.setInvertMode (highlightHour);         // Print hour
-  oled.print(timeToString(alarm_hour));
+  oled.print(timeToString(alarm_hour_temp));
   oled.setInvertMode (false);
 
   oled.print(":");
 
   oled.setInvertMode (highlightMin);          // Print min
-  oled.print(timeToString(alarm_minute));
+  oled.print(timeToString(alarm_minute_temp));
   oled.setInvertMode (false);
   oled.println("     ");
 }

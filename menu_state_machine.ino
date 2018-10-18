@@ -1,6 +1,7 @@
-  
- void Menu_State_Machine ()
- {
+
+void Menu_State_Machine ()
+{
+
   if (myBtn1.wasPressed()) {          // BUTTON 1: MENU/BACK: move between different menu screens
     switch (STATE) {
       case HOME:
@@ -37,10 +38,10 @@
       case SET_ALARM:
         switch (clock_mode) {
           case SET_HOUR:
-            alarm_hour = incrementHour(alarm_hour);
+            alarm_hour_temp = incrementHour(alarm_hour_temp);
             break;
           case SET_MINUTE:
-            alarm_minute = incrementMinute(alarm_minute);
+            alarm_minute_temp = incrementMinute(alarm_minute_temp);
             break;
         }
 
@@ -64,7 +65,9 @@
         }
 
       case SAVE_TIME:
+        break;
       case SAVE_ALARM:
+
         break;
     }
     printoled = HIGH;
@@ -105,11 +108,15 @@
         break;
 
       case SAVE_ALARM:                      // return to the home screen
+        alarm_hour = alarm_hour_temp;
+        alarm_minute = alarm_minute_temp;
+        STATE = HOME;
+        break;
       case SAVE_TIME:
         STATE = HOME;
         break;
     }
     printoled = HIGH;
   }
- }
+}
 

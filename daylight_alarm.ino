@@ -68,11 +68,15 @@ alarm_is_on = LOW;
 // Set to 20:30 Sunday September 2, 2018:
 static signed char           // type int8_t, range -128 to 127
 alarm_hour = 00,
-alarm_minute = 34,
+alarm_minute = 51,
 alarm_day = 1,               // day: Sunday=1, Monday=2, ..., Saturday=7
 alarm_date = 2,
 alarm_month = 9,
 alarm_year = 18;
+
+int
+alarm_hour_temp = alarm_hour,
+alarm_minute_temp = alarm_minute;
 
 // set time values (used when setting the clock)
 // Set to 00:00 Sunday September 2, 2018:
@@ -107,8 +111,6 @@ const unsigned char num_alarm_modes = 3;
 static unsigned char alarm_mode = 1;
 
 // text to display on the oled screen
-//static char lineone[18];
-//static char linefour[18];
 static String lineone;
 static String linefour;
 const String blankline = "                  ";
@@ -243,12 +245,20 @@ void loop()
     Alarm_on_or_off = LOW,
 
     //alarm_is_on = HIGH,
-    LED1_millis_at_turn_on = millis(),
+    LED1_millis_at_turn_off = millis(),
     turning_alarm_LED1_on = LOW,
     turning_alarm_LED1_off = HIGH,
-    LED2_millis_at_turn_on = millis(),
+    LED2_millis_at_turn_off = millis(),
     turning_alarm_LED2_on = LOW,
     turning_alarm_LED2_off = HIGH,
+    /*
+        LED1_millis_at_turn_off = millis(),
+        turning_LED1_on = LOW,
+        turning_LED1_off = HIGH,
+        LED2_millis_at_turn_off = millis(),
+        turning_LED2_on = LOW,
+        turning_LED2_off = HIGH,
+    */
 
     print_all_data (),
     Serial.println ("button 5 released");

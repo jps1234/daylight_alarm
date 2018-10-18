@@ -38,11 +38,21 @@ void Update_Display()
         break;
 
       case SET_ALARM:
-        oled.println(blankline);
-        OLEDprintAlarm(true, false);
-        oled.println("              Save");
-        oled.println("Back  Scroll Enter");
-        break;
+        switch (clock_mode) {
+          case SET_HOUR:
+            oled.println(blankline);
+            OLEDprintAlarm(true, false);
+            oled.println("              Save");
+            oled.println("Back  Scroll Enter");
+          case SET_MINUTE:
+            oled.println(blankline);
+            OLEDprintAlarm(false, true);
+            oled.println("              Save");
+            oled.println("Back  Scroll Enter");
+            break;
+        }
+
+
 
       case SAVE_ALARM:
         oled.println(blankline);

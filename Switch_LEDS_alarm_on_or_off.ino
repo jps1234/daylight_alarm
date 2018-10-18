@@ -10,7 +10,7 @@ void  Switch_LEDS_alarm_on_or_off() {
     // calculate a new value for the brightness of LED1, being careful not to exceed the bounds of the scale
     LED1_time_elapsed = millis() - LED1_millis_at_turn_on;
     LED1_alarm_brightness_turning_on = calculate_LED_brightness_linear(LED1_time_elapsed, LED1_alarm_brightness_turning_off, PWM_Steps_LED1,
-                                 LED1_alarm_turn_on_time, HIGH);
+                                       LED1_alarm_turn_on_time, HIGH);
     // Switch the flag turning_LED1_on off when the LED has reached full brightness
     if (LED1_alarm_brightness_turning_on >= PWM_Steps_LED1) {
       LED1_alarm_brightness_turning_on = PWM_Steps_LED1;
@@ -27,10 +27,11 @@ void  Switch_LEDS_alarm_on_or_off() {
 
     LED1_time_elapsed = millis() - LED1_millis_at_turn_off;
     LED1_alarm_brightness_turning_off = calculate_LED_brightness_linear(LED1_time_elapsed, LED1_alarm_brightness_turning_on, PWM_Steps_LED1,
-                                  LED1_alarm_turn_off_time, LOW);
+                                        LED1_alarm_turn_off_time, LOW);
     if (LED1_alarm_brightness_turning_off <= 0) {
       LED1_alarm_brightness_turning_off = 0;
       turning_alarm_LED1_off = LOW;
+      LED1_alarm_brightness_turning_on = 0; // because its not a switch so needs to be turned off
       Serial.println("turning_LED1_alarm_off = LOW");
       //  Serial.println (LED1_brightness_turning_off);
     }
@@ -42,7 +43,7 @@ void  Switch_LEDS_alarm_on_or_off() {
 
     LED2_time_elapsed = millis() - LED2_millis_at_turn_on,
     LED2_alarm_brightness_turning_on = calculate_LED_brightness_linear(LED2_time_elapsed, LED2_alarm_brightness_turning_off, PWM_Steps_LED2,
-                                 LED2_alarm_turn_on_time , HIGH);
+                                       LED2_alarm_turn_on_time , HIGH);
 
     if (LED2_alarm_brightness_turning_on >= PWM_Steps_LED2) {
       LED2_alarm_brightness_turning_on = PWM_Steps_LED2;
@@ -57,11 +58,13 @@ void  Switch_LEDS_alarm_on_or_off() {
 
     LED2_time_elapsed = millis() - LED2_millis_at_turn_off,
     LED2_alarm_brightness_turning_off = calculate_LED_brightness_linear(LED2_time_elapsed, LED2_alarm_brightness_turning_on, PWM_Steps_LED2,
-                                  LED2_alarm_turn_off_time , LOW);
+                                        LED2_alarm_turn_off_time , LOW);
 
     if (LED2_alarm_brightness_turning_off <= 0) {
       LED2_alarm_brightness_turning_off = 0;
       turning_alarm_LED2_off = LOW;
+      LED2_alarm_brightness_turning_on = 0; // because its not a switch so needs to be turned off
+
       Serial.println("turning_LED2_alarm_off = LOW");
       Serial.println (LED2_brightness_turning_off);
     }
