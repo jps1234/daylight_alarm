@@ -21,6 +21,21 @@ void OLEDprintDateTime()
   oled.println(timeToString(rtc.second()) + "     ");
 }
 
+void OLEDprintSetAlarm(unsigned char clock_mode) //new 2018-10-19
+{
+  oled.println(blankline);
+  oled.print("     ");
+  oled.setInvertMode (clock_mode == SET_HOUR);  // Print hour
+  oled.print(timeToString(set_alarm_hour));
+  oled.setInvertMode (false);
+  oled.print(":");
+
+  oled.setInvertMode (clock_mode == SET_MINUTE);  // Print min
+  oled.print(timeToString(set_alarm_minute));
+  oled.setInvertMode (false);
+  oled.println("     ");
+}
+
 void OLEDprintSetTime(unsigned char clock_mode)
 {
   oled.print("  ");                             // Print day
@@ -57,13 +72,29 @@ void OLEDprintAlarm(bool highlightHour, bool highlightMin)
   oled.print("Alarm : ");
 
   oled.setInvertMode (highlightHour);         // Print hour
-  oled.print(timeToString(alarm_hour_temp));
+  oled.print(timeToString(alarm_hour));
   oled.setInvertMode (false);
 
   oled.print(":");
 
   oled.setInvertMode (highlightMin);          // Print min
-  oled.print(timeToString(alarm_minute_temp));
+  oled.print(timeToString(alarm_minute));
+  oled.setInvertMode (false);
+  oled.println("     ");
+}
+
+void OLEDprintSetAlarm(bool highlightHour, bool highlightMin)
+{
+  oled.print("Alarm : ");
+
+  oled.setInvertMode (highlightHour);         // Print hour
+  oled.print(timeToString(set_alarm_hour));
+  oled.setInvertMode (false);
+
+  oled.print(":");
+
+  oled.setInvertMode (highlightMin);          // Print min
+  oled.print(timeToString(set_alarm_minute));
   oled.setInvertMode (false);
   oled.println("     ");
 }

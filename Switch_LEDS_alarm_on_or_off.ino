@@ -1,6 +1,5 @@
 void  Switch_LEDS_alarm_on_or_off() {
   // convert maximum brightness from percent to integer
-
   PWM_Steps_LED1 = (PWM_Steps / 100 * max_brightness_LED1);
   PWM_Steps_LED2 = (PWM_Steps / 100 * max_brightness_LED2);
 

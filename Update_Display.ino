@@ -38,7 +38,7 @@ void Update_Display()
         break;
 
       case SET_ALARM:
-        switch (clock_mode) {
+   /*     switch (clock_mode) {
           case SET_HOUR:
             oled.println(blankline);
             OLEDprintAlarm(true, false);
@@ -47,16 +47,19 @@ void Update_Display()
           case SET_MINUTE:
             oled.println(blankline);
             OLEDprintAlarm(false, true);
+            }
+            */
+            OLEDprintSetAlarm(clock_mode); //new 2018-10-19
             oled.println("              Save");
             oled.println("Back  Scroll Enter");
             break;
-        }
+        
 
 
 
       case SAVE_ALARM:
         oled.println(blankline);
-        OLEDprintAlarm(false, false);
+        OLEDprintSetAlarm(false, false);
         oled.setInvertMode (true);
         oled.println("              Save");
         oled.setInvertMode (false);

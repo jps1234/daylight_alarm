@@ -15,6 +15,7 @@
 #include <SparkFunDS3234RTC.h>
 #include <Wire.h> //display
 #include <JC_Button.h>
+#include <EEPROM.h>
 //#include <assert.h> // something to do with testing
 
 #include "SSD1306Ascii.h"
@@ -68,15 +69,17 @@ alarm_is_on = LOW;
 // Set to 20:30 Sunday September 2, 2018:
 static signed char           // type int8_t, range -128 to 127
 alarm_hour = 00,
-alarm_minute = 51,
+alarm_minute = 5,
 alarm_day = 1,               // day: Sunday=1, Monday=2, ..., Saturday=7
 alarm_date = 2,
 alarm_month = 9,
-alarm_year = 18;
+alarm_year = 18,
+
+alarm_off_delay = 5; // how long till the alarm turns its self off should be adjustable
 
 int
-alarm_hour_temp = alarm_hour,
-alarm_minute_temp = alarm_minute;
+set_alarm_hour = alarm_hour,
+set_alarm_minute = alarm_minute;
 
 // set time values (used when setting the clock)
 // Set to 00:00 Sunday September 2, 2018:
@@ -174,7 +177,7 @@ void setup()
   // Call rtc.begin([cs]) to initialize the library
   // The chip-select pin should be sent as the only parameter
   rtc.begin(DS13074_CS_PIN);
-  rtc.autoTime();//set time
+  //rtc.autoTime();//set time
 
 
   //  rtc.update();   // Update time/date values, so we can set alarms
@@ -214,9 +217,20 @@ void setup()
     turning_LED2_on = HIGH,
     turning_LED2_off = LOW,
     Serial.println ("button 6 pressed at start-up");
+
+  // convert maximum brightness from percent to integer
+  // if menu is enabled to set brightness value move this
+
+// read alarm values from eeprom
+
+   alarm_hour = EEPROM.read(1);
+   set_alarm_hour = alarm_hour;
+   alarm_minute = EEPROM.read(2);
+   set_alarm_minute = alarm_minute;
 } // end of setup
 void loop()
 {
+
   // read the buttons
   myBtn1.read(); //Keypad left button
   myBtn2.read(); //Keypad middle button
@@ -244,7 +258,6 @@ void loop()
     printoled = !printoled,
     Alarm_on_or_off = LOW,
 
-    //alarm_is_on = HIGH,
     LED1_millis_at_turn_off = millis(),
     turning_alarm_LED1_on = LOW,
     turning_alarm_LED1_off = HIGH,
@@ -299,18 +312,27 @@ void loop()
       Serial.print (" ");
     */
     print_all_data ();
-    printTime(); // Print the new time to serial
+   printTime(); // Print the new time to serial
   }
 
 
-  Update_Display();
-  Menu_State_Machine ();
-  check_alarm_time ();
+  Update_Display(); // runs every second or if display flag is updated
+  Menu_State_Machine (); // for scrolling through the menu
+  check_alarm_time (); // is it time to turn on the alarm
+ check_alarm_time_turn_off (); // is it time to turn off the alarm
   Switch_LEDS_on_or_off(); // uses button 6
-  Switch_LEDS_alarm_on_or_off(); // uses button 6
-}
-//End of loop
+  Switch_LEDS_alarm_on_or_off(); // uses button 5 and check_alarm_time_turn_off
+
+
+} //End of loop
+
+
 void print_all_data () {
+
+  Serial.println (EEPROM.read(1));
+  Serial.println (EEPROM.read(2));
+    Serial.println (alarm_hour);
+ 
   Serial.print ("OCR1A = ");
   Serial.print (OCR1A);
   Serial.print (" : LED1_brightness_turning_on = ");
@@ -352,17 +374,29 @@ void check_alarm_time () {
       Serial.println ("alarm met leds should be on");
 
     }
-    /*
-      alarm_hour = 20,
-      alarm_minute = 30,
-      alarm_day = 1,               // day: Sunday=1, Monday=2, ..., Saturday=7
-      alarm_date = 2,
-      alarm_month = 9,
-      alarm_year = 18;
-    */
   }
 }
 
+
+void check_alarm_time_turn_off () {
+  // if (alarm_is_on == HIGH && Alarm_on_or_off == HIGH)
+  if (alarm_is_on == HIGH) // in case the the alarm switch is  tured  off
+  {
+    if (rtc.hour() == alarm_hour && rtc.minute() == (alarm_minute + alarm_off_delay))
+  {
+    alarm_is_on = LOW,
+    LED1_millis_at_turn_off = millis(),
+      turning_alarm_LED1_on = LOW,
+      turning_alarm_LED1_off = HIGH,
+      LED2_millis_at_turn_off = millis(),
+      turning_alarm_LED2_on = LOW,
+      turning_alarm_LED2_off = HIGH;
+
+      Serial.println ("alarm time to turn off met leds should be off");
+
+    }
+  }
+}
 void setupPWM16() {
   TCCR1A = bit (WGM11) | bit (COM1B1) | bit (COM1A1); // fast PWM, TOP = ICR1, Enable OCR1A and OCR1B as outputs clear on compare
   TCCR1B = bit (WGM13) | bit (WGM12) | bit (CS10);   // fast PWM,  CS10 no prescaler p.s. WGM11, WGM12, WGM12 means TOP = ICR1

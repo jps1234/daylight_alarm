@@ -38,10 +38,10 @@ void Menu_State_Machine ()
       case SET_ALARM:
         switch (clock_mode) {
           case SET_HOUR:
-            alarm_hour_temp = incrementHour(alarm_hour_temp);
+            set_alarm_hour = incrementHour(set_alarm_hour);
             break;
           case SET_MINUTE:
-            alarm_minute_temp = incrementMinute(alarm_minute_temp);
+            set_alarm_minute = incrementMinute(set_alarm_minute);
             break;
         }
 
@@ -108,11 +108,15 @@ void Menu_State_Machine ()
         break;
 
       case SAVE_ALARM:                      // return to the home screen
-        alarm_hour = alarm_hour_temp;
-        alarm_minute = alarm_minute_temp;
+        alarm_hour = set_alarm_hour;
+          EEPROM.write(1, alarm_hour);
+       alarm_minute = set_alarm_minute;
+                 EEPROM.write(2, alarm_minute);
         STATE = HOME;
         break;
       case SAVE_TIME:
+       //rtc.setTime(s, m, h, day, date, month, year)
+        rtc.setTime(rtc.second(), set_time_minute, set_time_hour, set_time_day, set_time_date, set_time_month, set_time_year); //added 2019-10-19 this may not work check rtc.second?
         STATE = HOME;
         break;
     }
