@@ -111,12 +111,13 @@ void Menu_State_Machine ()
         alarm_hour = set_alarm_hour;
           EEPROM.write(1, alarm_hour);
        alarm_minute = set_alarm_minute;
-                 EEPROM.write(2, alarm_minute);
+          EEPROM.write(2, alarm_minute);
         STATE = HOME;
         break;
       case SAVE_TIME:
        //rtc.setTime(s, m, h, day, date, month, year)
-        rtc.setTime(rtc.second(), set_time_minute, set_time_hour, set_time_day, set_time_date, set_time_month, set_time_year); //added 2019-10-19 this may not work check rtc.second?
+       int set_second = rtc.second();
+        rtc.setTime(set_second, set_time_minute, set_time_hour, set_time_day, set_time_date, set_time_month, set_time_year); //added 2019-10-19 this may not work check rtc.second?
         STATE = HOME;
         break;
     }
