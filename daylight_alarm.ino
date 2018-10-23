@@ -130,8 +130,8 @@ LED1_alarm_brightness_turning_off = 0,//brightness of LED when turning off
 LED2_alarm_brightness_turning_on = 0, //brightness of LED when turning on
 LED2_alarm_brightness_turning_off = 0, //brightness of LED when turning off
 
-max_brightness_LED1 = 100, // out of 100 relates to pwm steps below...
-max_brightness_LED2 = 100, // out of 100 relates to pwm steps below...
+max_brightness_LED1 = 50, // out of 100 relates to pwm steps below...
+max_brightness_LED2 = 50, // out of 100 relates to pwm steps below...
 PWM_Steps_LED1 = 0, //  PWM_Steps/100 * max_brightness_LED1
 PWM_Steps_LED2 = 0, //as percent of PWM Steps
 PWM_Steps = 32767; //sent to ICR1 register. less than 32,767 otherwise code wraps around and breaks
@@ -342,8 +342,8 @@ void daylight_saving () {
     //get the current time but set hour back to 2 am
     temp_time_hour = 2; //rtc.hour();
     rtc.setTime(temp_time_second, temp_time_minute, temp_time_hour, temp_time_day, temp_time_date, temp_time_month, temp_time_year); //added 2019-10-19 this may not work check rtc.second?
-    EEPROM.write(0,0);
-      Serial.print ("daylight oct met ");
+    EEPROM.write(0, 0);
+    Serial.print ("daylight oct met ");
   }
 
   if (temp_time_day == 1 && temp_time_month == 3 && temp_time_date >= 25 && temp_time_hour == 2 && EEPROM.read(0) == 0)
@@ -351,15 +351,15 @@ void daylight_saving () {
   {
     temp_time_hour = 3; //rtc.hour()
     rtc.setTime(temp_time_second, temp_time_minute, temp_time_hour, temp_time_day, temp_time_date, temp_time_month, temp_time_year); //added 2019-10-19 this may not work check rtc.second?
-    EEPROM.write(0,1);
+    EEPROM.write(0, 1);
   }
 }
 
 void print_all_data () {
-
+  Serial.println (max_brightness_LED1);
   Serial.println (String(rtc.month()));
   Serial.println (String(rtc.day()));
- Serial.println (rtc.date());
+  Serial.println (rtc.date());
   Serial.println (EEPROM.read(0));
   Serial.println (EEPROM.read(1));
   Serial.println (EEPROM.read(2));

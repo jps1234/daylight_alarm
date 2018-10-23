@@ -76,7 +76,13 @@ void Menu_State_Machine ()
     switch (STATE)
     {
       case HOME:
-        Alarm_on_or_off = !Alarm_on_or_off; // toggle the alarm on and off
+        if (max_brightness_LED1 < 100) 
+        max_brightness_LED1++;
+        PWM_Steps_LED1 = (PWM_Steps / 100 * max_brightness_LED1);
+        LED1_brightness_turning_on = PWM_Steps_LED1;
+        analogWrite16(LED_PIN1, LED1_brightness_turning_on);
+
+        // Alarm_on_or_off = !Alarm_on_or_off; // toggle the alarm on and off
         break;
 
       case MENU_SET_ALARM:
@@ -109,14 +115,14 @@ void Menu_State_Machine ()
 
       case SAVE_ALARM:                      // return to the home screen
         alarm_hour = set_alarm_hour;
-          EEPROM.write(1, alarm_hour);
-       alarm_minute = set_alarm_minute;
-          EEPROM.write(2, alarm_minute);
+        EEPROM.write(1, alarm_hour);
+        alarm_minute = set_alarm_minute;
+        EEPROM.write(2, alarm_minute);
         STATE = HOME;
         break;
       case SAVE_TIME:
-       //rtc.setTime(s, m, h, day, date, month, year)
-       int set_second = rtc.second();
+        //rtc.setTime(s, m, h, day, date, month, year)
+        int set_second = rtc.second();
         rtc.setTime(set_second, set_time_minute, set_time_hour, set_time_day, set_time_date, set_time_month, set_time_year); //added 2019-10-19 this may not work check rtc.second?
         STATE = HOME;
         break;
