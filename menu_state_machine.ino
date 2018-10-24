@@ -26,6 +26,17 @@ void Menu_State_Machine ()
     switch (STATE)
     {
       case HOME:
+      
+        if (max_brightness_LED1 > 0)
+        {
+          max_brightness_LED1--;
+          PWM_Steps_LED1 = (PWM_Steps / 100 * max_brightness_LED1);
+          LED1_brightness_turning_on = PWM_Steps_LED1;
+          EEPROM.write(10, max_brightness_LED1);
+          if (myBtn6.isPressed())
+            analogWrite16(LED_PIN1, LED1_brightness_turning_on);
+        }
+
         break;
 
       case MENU_SET_ALARM:
@@ -76,11 +87,16 @@ void Menu_State_Machine ()
     switch (STATE)
     {
       case HOME:
-        if (max_brightness_LED1 < 100) 
-        max_brightness_LED1++;
-        PWM_Steps_LED1 = (PWM_Steps / 100 * max_brightness_LED1);
-        LED1_brightness_turning_on = PWM_Steps_LED1;
-        analogWrite16(LED_PIN1, LED1_brightness_turning_on);
+        // change LED max brightness and then update LEDs and save to EEPROM
+        if (max_brightness_LED1 < 100)
+        {
+          max_brightness_LED1++;
+          PWM_Steps_LED1 = (PWM_Steps / 100 * max_brightness_LED1);
+          LED1_brightness_turning_on = PWM_Steps_LED1;
+          EEPROM.write(10, max_brightness_LED1);
+          if (myBtn6.isPressed())
+            analogWrite16(LED_PIN1, LED1_brightness_turning_on);
+        }
 
         // Alarm_on_or_off = !Alarm_on_or_off; // toggle the alarm on and off
         break;

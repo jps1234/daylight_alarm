@@ -25,6 +25,17 @@
 #define I2C_ADDRESS 0x3C // spi port of ss1306 display
 SSD1306AsciiAvrI2c oled;
 
+/* uncooment the following to set EEPROM for the first time
+  EEPROM locations used
+   EEPROM.write(0, 0); // daylight saving flag check what month to start on
+  1 Alarm hour
+  2 Alarm Minute
+
+  EEPROM.write(10, 100);10 LED1 max brightness out of 100
+  EEPROM.write(11, 100);11 LED2 max brightness out of 100
+
+*/
+
 // Pin assignments in order around arduino micro
 // pin 0 - N/C TXD1 only
 // pin 1 - N/C RXD1 only
@@ -48,6 +59,10 @@ const byte   LED_PIN2 = 10;
 // pins A0, A1, A2, A3  - Analogue pins for buttons
 // connect a button from these pins to ground (internal pull-ups enabled)
 const byte BUTTON1_PIN(A0), BUTTON2_PIN(A1), BUTTON3_PIN(A2), BUTTON4_PIN(A3);
+
+
+
+
 
 // define the buttons 5 & 6 have longer bounce as toggle switch
 Button myBtn1(BUTTON1_PIN), myBtn2(BUTTON2_PIN), myBtn3(BUTTON3_PIN), myBtn4(BUTTON4_PIN), myBtn5(BUTTON5_PIN, 200), myBtn6(BUTTON6_PIN, 200);
@@ -130,8 +145,8 @@ LED1_alarm_brightness_turning_off = 0,//brightness of LED when turning off
 LED2_alarm_brightness_turning_on = 0, //brightness of LED when turning on
 LED2_alarm_brightness_turning_off = 0, //brightness of LED when turning off
 
-max_brightness_LED1 = 50, // out of 100 relates to pwm steps below...
-max_brightness_LED2 = 50, // out of 100 relates to pwm steps below...
+max_brightness_LED1 = EEPROM.read(10), // out of 100 relates to pwm steps below...
+max_brightness_LED2 = EEPROM.read(11), // out of 100 relates to pwm steps below...
 PWM_Steps_LED1 = 0, //  PWM_Steps/100 * max_brightness_LED1
 PWM_Steps_LED2 = 0, //as percent of PWM Steps
 PWM_Steps = 32767; //sent to ICR1 register. less than 32,767 otherwise code wraps around and breaks
@@ -356,14 +371,23 @@ void daylight_saving () {
 }
 
 void print_all_data () {
+    Serial.print ("EEPROM max_brightness_LED1 % : ");
+  Serial.print (EEPROM.read(10));
+  Serial.print (" | max_brightness_LED1 % : ");
   Serial.println (max_brightness_LED1);
-  Serial.println (String(rtc.month()));
-  Serial.println (String(rtc.day()));
-  Serial.println (rtc.date());
-  Serial.println (EEPROM.read(0));
-  Serial.println (EEPROM.read(1));
-  Serial.println (EEPROM.read(2));
-  Serial.println (alarm_hour);
+  //  Serial.println (String(rtc.month()));
+  //  Serial.println (String(rtc.day()));
+  //  Serial.println (rtc.date());
+  //  Serial.print ("EEPROM 0 DST flag: ")
+  //  Serial.println (EEPROM.read(0));
+  Serial.print ("EEPROM 1 Alarm Hour: ");
+  Serial.print (EEPROM.read(1));
+  Serial.print (" alarm_hour : ");
+  Serial.print (alarm_hour);
+  Serial.print (" | EEPROM 2  Alarm Minute: ");
+  Serial.print (EEPROM.read(2));
+  Serial.print (" alarm_minute : ");
+  Serial.println (alarm_minute);
 
   Serial.print ("OCR1A = ");
   Serial.print (OCR1A);
