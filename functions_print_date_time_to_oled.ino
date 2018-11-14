@@ -21,6 +21,21 @@ void OLEDprintDateTime()
   oled.println(timeToString(rtc.second()) + "     ");
 }
 
+void OLEDprintDateTime1()
+{
+  //oled.print("  ");                           // Print date
+  //oled.print(days[rtc.day() - 1] + " ");      // remember that index of days starts at 0 (rather than 1)
+  oled.print(String(rtc.date()) + " ");
+  oled.print(months[rtc.month() - 1] + " ");  // similarly index of months starts at 0 (rather than 1)
+  oled.print(String(rtc.year()) + " ");
+
+  //oled.print(" ");                        // Print time
+  oled.print(timeToString(rtc.hour()) + ":");
+  oled.print(timeToString(rtc.minute()) + ":");
+  oled.println(timeToString(rtc.second()) + "     ");
+}
+
+
 void OLEDprintSetAlarm(unsigned char clock_mode) //new 2018-10-19
 {
   oled.println(blankline);

@@ -1,6 +1,7 @@
 
 void printTime() //Over serial
 {
+/*
   Serial.print ("time = ");
   Serial.print(String(rtc.hour()) + ":"); // Print hour
   if (rtc.minute() < 10)
@@ -9,7 +10,7 @@ void printTime() //Over serial
   if (rtc.second() < 10)
     Serial.print('0'); // Print leading '0' for second
   Serial.print(String(rtc.second())); // Print second
-
+*/
  /* if (rtc.is12Hour()) // If we're in 12-hour mode
   {
     // Use rtc.pm() to read the AM/PM state of the hour
@@ -17,6 +18,8 @@ void printTime() //Over serial
     else Serial.print(" AM");
   }
 */
+
+ /*
   Serial.print(" | ");
 
   // Few options for printing the day, pick one:
@@ -29,6 +32,7 @@ void printTime() //Over serial
                String(rtc.month()) + "/"); // Print month
 
   Serial.println(String(rtc.year()));        // Print year
+  */
 }
 
 

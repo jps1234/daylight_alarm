@@ -371,6 +371,7 @@ void daylight_saving () {
 }
 
 void print_all_data () {
+  /*
     Serial.print ("EEPROM max_brightness_LED1 % : ");
   Serial.print (EEPROM.read(10));
   Serial.print (" | max_brightness_LED1 % : ");
@@ -410,7 +411,7 @@ void print_all_data () {
   Serial.print (LED2_alarm_brightness_turning_on);
   Serial.print (" : LED2_alarm_brightness_turning_off = ");
   Serial.println (LED2_alarm_brightness_turning_off);
-
+*/
 }
 
 
