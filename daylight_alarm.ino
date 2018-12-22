@@ -378,6 +378,9 @@ void daylight_saving () {
 }
 
 void print_all_data () {
+  
+  Serial.println (STATE);
+ 
   /*
     Serial.print ("EEPROM max_brightness_LED1 % : ");
   Serial.print (EEPROM.read(10));
