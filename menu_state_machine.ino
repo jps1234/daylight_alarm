@@ -26,7 +26,7 @@ void Menu_State_Machine ()
     switch (STATE)
     {
       case HOME:
-
+      
         if (max_brightness_LED1 > 0)
         {
           max_brightness_LED1--;
@@ -36,7 +36,7 @@ void Menu_State_Machine ()
           if (myBtn6.isPressed())
             analogWrite16(LED_PIN1, LED1_brightness_turning_on);
         }
-        if (max_brightness_LED2 > 0)
+                if (max_brightness_LED2 > 0)
         {
           max_brightness_LED2--;
           PWM_Steps_LED2 = (PWM_Steps / 100 * max_brightness_LED2);
@@ -45,8 +45,10 @@ void Menu_State_Machine ()
           if (myBtn6.isPressed())
             analogWrite16(LED_PIN2, LED2_brightness_turning_on);
         }
+
+
         break;
- 
+
       case MENU_SET_ALARM:
         STATE = MENU_SET_TIME;
         break;
@@ -83,25 +85,10 @@ void Menu_State_Machine ()
             break;
         }
 
-
       case SAVE_TIME:
-        {
-          //rtc.setTime(s, m, h, day, date, month, year)
-          int set_second = rtc.second();
-          rtc.setTime(set_second, set_time_minute, set_time_hour, set_time_day, set_time_date, set_time_month, set_time_year); //added 2019-10-19 this may not work check rtc.second?
-          STATE = HOME;
-        }
         break;
-        
       case SAVE_ALARM:
-      {
-        //STATE = SAVE_ALARM;
-        alarm_hour = set_alarm_hour;
-        EEPROM.write(1, alarm_hour);
-        alarm_minute = set_alarm_minute;
-        EEPROM.write(2, alarm_minute);
-        STATE = HOME;
-      }
+
         break;
     }
     printoled = HIGH;
@@ -161,26 +148,18 @@ void Menu_State_Machine ()
           STATE = SAVE_TIME;
         break;
 
-      case SAVE_ALARM:                      // dont return to the home screen
-        STATE = SET_ALARM;
-        clock_mode = SET_HOUR;
-        /*alarm_hour = set_alarm_hour;
-          EEPROM.write(1, alarm_hour);
-          alarm_minute = set_alarm_minute;
-          EEPROM.write(2, alarm_minute);
-          STATE = HOME;
-        */
+      case SAVE_ALARM:                      // return to the home screen
+        alarm_hour = set_alarm_hour;
+        EEPROM.write(1, alarm_hour);
+        alarm_minute = set_alarm_minute;
+        EEPROM.write(2, alarm_minute);
+        STATE = HOME;
         break;
-      case SAVE_TIME: 
-      /*{
-          //rtc.setTime(s, m, h, day, date, month, year)
-          int set_second = rtc.second();
-          rtc.setTime(set_second, set_time_minute, set_time_hour, set_time_day, set_time_date, set_time_month, set_time_year); //added 2019-10-19 this may not work check rtc.second?
-          STATE = HOME;
-        }
-        */
-        STATE = SET_TIME;
-        clock_mode = SET_DAY;
+      case SAVE_TIME:
+        //rtc.setTime(s, m, h, day, date, month, year)
+        int set_second = rtc.second();
+        rtc.setTime(set_second, set_time_minute, set_time_hour, set_time_day, set_time_date, set_time_month, set_time_year); //added 2019-10-19 this may not work check rtc.second?
+        STATE = HOME;
         break;
     }
     printoled = HIGH;

@@ -39,7 +39,7 @@ void OLEDprintDateTime1()
 void OLEDprintSetAlarm(unsigned char clock_mode) //new 2018-10-19
 {
   oled.println(blankline);
-  oled.print("Alarm : ");
+  oled.print("     ");
   oled.setInvertMode (clock_mode == SET_HOUR);  // Print hour
   oled.print(timeToString(set_alarm_hour));
   oled.setInvertMode (false);

@@ -3,18 +3,39 @@ void Update_Display()
   {
     printoled = LOW;
     oled.setFont(X11fixed7x14);
-    //oled.set1X();
+    //   oled.set1X();
     oled.home();              // Set the cursor position to (0, 0).
 
     switch (STATE)
     {
       case HOME:
-        OLEDprintDateTime ();
+        OLEDprintDateTime1 ();
         if (Alarm_on_or_off)
           OLEDprintAlarm(false, false);
         else
-          oled.println("Alarm : Off       ");
-        oled.println("Menu         Alarm");
+          oled.println("Alarm : Off        ");
+
+        oled.print("L1: ");
+
+        if (max_brightness_LED1 < 10)
+          oled.print(' '); // Print leading '0'
+        if (max_brightness_LED1 < 100)
+          oled.print(' '); // Print leading '0'
+        oled.print(max_brightness_LED1);
+        oled.print("% ");
+        
+        oled.print("L2: ");
+        if (max_brightness_LED2 < 10)
+          oled.print(' '); // Print leading '0'
+        if (max_brightness_LED2 < 100)
+          oled.print(' '); // Print leading '0'
+        oled.print(max_brightness_LED2);
+        oled.println("%");
+
+        oled.print("Menu");
+        oled.println ("   dim  bright");
+
+
         break;
 
       case MENU_SET_ALARM:
@@ -38,22 +59,22 @@ void Update_Display()
         break;
 
       case SET_ALARM:
-   /*     switch (clock_mode) {
-          case SET_HOUR:
-            oled.println(blankline);
-            OLEDprintAlarm(true, false);
-            oled.println("              Save");
-            oled.println("Back  Scroll Enter");
-          case SET_MINUTE:
-            oled.println(blankline);
-            OLEDprintAlarm(false, true);
-            }
-            */
-            OLEDprintSetAlarm(clock_mode); //new 2018-10-19
-            oled.println("              Save");
-            oled.println("Back  Scroll Enter");
-            break;
-        
+        /*     switch (clock_mode) {
+               case SET_HOUR:
+                 oled.println(blankline);
+                 OLEDprintAlarm(true, false);
+                 oled.println("              Save");
+                 oled.println("Back  Scroll Enter");
+               case SET_MINUTE:
+                 oled.println(blankline);
+                 OLEDprintAlarm(false, true);
+                 }
+        */
+        OLEDprintSetAlarm(clock_mode); //new 2018-10-19
+        oled.println("              Save");
+        oled.println("Back  Scroll Enter");
+        break;
+
 
 
 
@@ -83,3 +104,4 @@ void Update_Display()
 
   }
 }
+

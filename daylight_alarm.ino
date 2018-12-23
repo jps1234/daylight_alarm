@@ -1,6 +1,6 @@
 /*
- * modified 2018-12-23
 *****************************************************************************
+*modified 2018-12-23 woeking dimmer settings
   Sources
   DS3234_RTC_Demo.ino
   https://github.com/sparkfun/SparkFun_DS3234_RTC_Arduino_Library
