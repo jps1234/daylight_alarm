@@ -1,4 +1,5 @@
 /*
+ * modified 2018-12-23
 *****************************************************************************
   Sources
   DS3234_RTC_Demo.ino
@@ -25,6 +26,16 @@
 #define I2C_ADDRESS 0x3C // spi port of ss1306 display
 SSD1306AsciiAvrI2c oled;
 
+/* uncooment the following to set EEPROM for the first time
+  EEPROM locations used
+   EEPROM.write(0, 0); // daylight saving flag check what month to start on
+  1 Alarm hour
+  2 Alarm Minute
+
+  EEPROM.write(10, 100);10 LED1 max brightness out of 100
+  EEPROM.write(11, 100);11 LED2 max brightness out of 100
+
+*/
 
 // Pin assignments in order around arduino micro
 // pin 0 - N/C TXD1 only
@@ -135,11 +146,8 @@ LED1_alarm_brightness_turning_off = 0,//brightness of LED when turning off
 LED2_alarm_brightness_turning_on = 0, //brightness of LED when turning on
 LED2_alarm_brightness_turning_off = 0, //brightness of LED when turning off
 
-//max_brightness_LED1 = EEPROM.read(10), // out of 100 relates to pwm steps below...
-//max_brightness_LED2 = EEPROM.read(11), // out of 100 relates to pwm steps below...
-max_brightness_LED1 = 0, // out of 100 relates to pwm steps below...
-max_brightness_LED2 = 0, // out of 100 relates to pwm steps below...
-
+max_brightness_LED1 = EEPROM.read(10), // out of 100 relates to pwm steps below...
+max_brightness_LED2 = EEPROM.read(11), // out of 100 relates to pwm steps below...
 PWM_Steps_LED1 = 0, //  PWM_Steps/100 * max_brightness_LED1
 PWM_Steps_LED2 = 0, //as percent of PWM Steps
 PWM_Steps = 32767; //sent to ICR1 register. less than 32,767 otherwise code wraps around and breaks
@@ -231,26 +239,12 @@ void setup()
   // convert maximum brightness from percent to integer
   // if menu is enabled to set brightness value move this
 
-  // read values from eeprom and check if first turn on
-  /* uncooment the following to set EEPROM for the first time
-  EEPROM locations used
-   EEPROM.write(0, 0); // daylight saving flag check what month to start on
-  1 Alarm hour
-  2 Alarm Minute
+  // read alarm values from eeprom
 
-  EEPROM.write(10, 100);10 LED1 max brightness out of 100
-  EEPROM.write(11, 100);11 LED2 max brightness out of 100
-
-*/
   alarm_hour = EEPROM.read(1);
   set_alarm_hour = alarm_hour;
   alarm_minute = EEPROM.read(2);
   set_alarm_minute = alarm_minute;
-
-max_brightness_LED1 = EEPROM.read(10); // out of 100 relates to pwm steps below...
-max_brightness_LED2 = EEPROM.read(11); // out of 100 relates to pwm steps below...
-
-  
 } // end of setup
 void loop()
 {
@@ -378,9 +372,6 @@ void daylight_saving () {
 }
 
 void print_all_data () {
-  
-  Serial.println (STATE);
- 
   /*
     Serial.print ("EEPROM max_brightness_LED1 % : ");
   Serial.print (EEPROM.read(10));
